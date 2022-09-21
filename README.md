@@ -1,5 +1,5 @@
 === IOPAY for WooCommerce ===
-Contributors: Jeronimo
+Contributors: Jeronimo Cardoso
 Tags: woocommerce, iopay, payment
 Requires at least: 4.0
 Tested up to: 1.0.0
@@ -15,7 +15,8 @@ O [IOPAY](https://iopay.com.br/) é a melhor forma de receber pagamentos online 
 
 Saiba mais como o Iopay funciona:
 
-colocar um video aqui
+https://iopay.com.br/
+
 
 = Compatibilidade =
 
@@ -27,15 +28,13 @@ Este plugin funciona integrado com o [WooCommerce Extra Checkout Fields for Braz
 
 Confira o nosso guia de instalação:
 
-video aqui
+https://iopay.com.br/
 
 = Dúvidas? =
 
 Você pode esclarecer suas dúvidas usando:
 
 faq
-
-== Installation ==
 
 = Instalação do plugin: =
 
@@ -48,17 +47,15 @@ faq
 
 = Configurações do Plugin: =
 
-Com o plugin instalado acesse o admin do WordPress e entre em "WooCommerce" > "Configurações" > "Finalizar compra" e configure as opção "IOPAY - Boleto bancário" e "IOPAY - Cartão de crédito".
+Com o plugin instalado acesse o admin do WordPress e entre em "WooCommerce" > "Configurações" > "Finalizar compra" e configure as opção "IOPAY - Boleto bancário", "IOPAY - Cartão de crédito" e "IOPAY - PIX".
 
-Habilite a opção que você deseja, preencha as opções de **Chave de API** e **Chave de Criptografia** que você pode encontrar dentro da sua conta na IOPAY em **API Keys**.
+Habilite a opção que você deseja, preencha as opções de Email, **IO_SELLER_ID** e **Secret - Chave de Criptografia** que você pode encontrar dentro da sua conta na IOPAY em **https://minhaconta.iopay.com.br/settings/online_payment**.
 
 Também será necessário utilizar o plugin [WooCommerce Extra Checkout Fields for Brazil](http://wordpress.org/plugins/woocommerce-extra-checkout-fields-for-brazil/) para poder enviar campos de CPF e CNPJ.
 
 Pronto, sua loja já pode receber pagamentos pelo IOPAY.
 
 Mais informações sobre as configurações do plugin em: 
-
-== Frequently Asked Questions ==
 
 = Qual é a licença do plugin? =
 
@@ -68,11 +65,11 @@ Este plugin esta licenciado como GPL.
 
 * Ter instalado o plugin WooCommerce 2.2 ou superior.
 * Possuir uma conta na IOPAY.
-* Pegar sua **Chave de API** e **Chave de Criptografia** na IOPAY.
+* Pegar suas credencias na IOPAY.
 
 = Quanto custa a IOPAY? =
 
-Confira os preços em "".
+Confira os preços em "https://iopay.com.br/precos".
 
 = O pedido foi pago e ficou com o status de "processando" e não como "concluído", isto esta certo ? =
 
@@ -86,17 +83,10 @@ Para produtos baixáveis a configuração padrão do WooCommerce é permitir o a
 
 Não é obrigatório caso você não utilize antifraude.
 
-É possível remover os campos de endereço, empresa e telefone, mantendo apenas nome, sobrenome e e-mail utilizando o plugin [WooCommerce Digital Goods Checkout](https://wordpress.org/plugins/wc-digital-goods-checkout/).
-
-== Screenshots ==
-
-1. Exemplo de checkout com cartão de crédito e boleto bancário do Iopay no tema Storefront.
-2. Exemplo do Checkout Iopay para cartão de crédito.
-3. Configurações para boleto bancário.
-4. Configurações para cartão de crédito.
+É possível remover os campos de endereço, empresa e telefone, mantendo apenas nome, sobrenome e e-mail utilizando o plugin [WooCommerce Digital Goods Checkout](https://wordpress.org/plugins/wc-digital-goods-checkout/), mais lembre-se esses campos sào obrigatórios quando seu plano tiver antifraude incluido.
 
 == Changelog ==
 
 = 1.0.0 =
 
-* Versão incial do plugin.
+* Versão incial do plugin. 21/09/2022
