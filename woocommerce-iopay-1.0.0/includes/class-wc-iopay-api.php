@@ -600,22 +600,32 @@ class WC_Iopay_API {
                 'products' => $items
             );
             
+            
+          
 
             if ($setting['antifraude']) {
 
-                
+            $phone_aux = $_POST['billing_phone'];
+
+
+            $ddd = substr($phone_aux, 0, 5);
+            $number_phone = substr($phone_aux, 5);
+
+
+            $billing_phone = trim($ddd) . $number_phone;
+        
                 
                 $taxpayer_id = str_replace(array('.','-'), array('',''), $_POST['billing_cpf']);
-                $firstname = $_POST['shipping_first_name'];
-                $lastname = $_POST['shipping_last_name'];
-                $address_1 = $_POST['billing_address_1'];
-                $address_2 = $_POST['shipping_number'];
-                $address_3 = $_POST['billing_address_2'];
-                $postal_code = $_POST['shipping_postcode'];
-                $city = $_POST['shipping_city'];
-                $state = $_POST['shipping_state'];
+                $firstname = $_POST['shipping_first_name']==null?$_POST['billing_first_name']:$_POST['shipping_first_name'];
+                $lastname = $_POST['shipping_last_name']==null?$_POST['billing_last_name']:$_POST['shipping_last_name'];
+                $address_1 = $_POST['billing_address_1']==null?$_POST['billing_address_1']:$_POST['billing_address_1'];
+                $address_2 = $_POST['shipping_number']==null?$_POST['billing_number']:$_POST['shipping_number'];
+                $address_3 = $_POST['billing_address_2']==null?$_POST['billing_address_2']:$_POST['billing_address_2'];
+                $postal_code = $_POST['shipping_postcode']==null?$_POST['billing_postcode']:$_POST['shipping_postcode'];
+                $city = $_POST['shipping_city']==null?$_POST['billing_city']:$_POST['shipping_city'];
+                $state = $_POST['shipping_state']==null?$_POST['billing_state']:$_POST['shipping_state'];
                 $client_type = 'pf';
-                $phone_number = $_POST['billing_phone'];
+                $phone_number = $billing_phone;
                 $antifraud_sessid = $_POST['session_id'];
                 
                 $shipping = array(
@@ -639,6 +649,9 @@ class WC_Iopay_API {
                
                 
             }
+            
+              
+            
         
         } elseif ('iopay-banking-ticket' === $this->gateway->id) {
 
