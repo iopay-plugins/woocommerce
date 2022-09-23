@@ -18,13 +18,13 @@
 
     function checkPixPayment() {
         var interval = 5000;
-        if( typeof window.wc_pagarme_pix_payment_geteway !== 'undefined' )
-            interval = window.wc_pagarme_pix_payment_geteway.checkInterval;
+        if( typeof window.wc_iopay_pix_payment_geteway !== 'undefined' )
+            interval = window.wc_iopay_pix_payment_geteway.checkInterval;
 
         var checkInt = setInterval(function () {
             $.get( woocommerce_params.ajax_url, {
-                'action': 'wc_pagarme_pix_payment_check',
-                'key': $('input[name=wc_pagarme_pix_order_key]').val()
+                'action': 'wc_iopay_pix_payment_check',
+                'key': $('input[name=wc_iopay_pix_order_key]').val()
             } ).done( function(data) {
                 if( data.paid == true ){
                     clearInterval(checkInt);
@@ -78,7 +78,7 @@
                 
                  var form = $('form.checkout, form#order_review'),
                         errors = null,
-                        creditCardForm = $('#pagarme-credit-cart-form', form),
+                        creditCardForm = $('#iopay-credit-cart-form', form),
                         errorHtml = '';
                 // Lock the checkout form.
                 form.addClass('processing');
