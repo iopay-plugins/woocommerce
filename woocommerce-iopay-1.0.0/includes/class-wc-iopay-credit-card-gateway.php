@@ -226,6 +226,11 @@ class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
                 'default' => '0',
             ),
             'interest_rate_installment_5' => array(
+                'title' => __('Juros parcela 5', 'woocommerce-iopay'),
+                'desc_tip' => true,
+                'default' => '0',
+            ),
+            'interest_rate_installment_6' => array(
                 'title' => __('Juros parcela 6', 'woocommerce-iopay'),
                 'desc_tip' => true,
                 'default' => '0',
