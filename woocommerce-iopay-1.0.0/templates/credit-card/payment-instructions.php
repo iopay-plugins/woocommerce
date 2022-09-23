@@ -1,19 +1,66 @@
 <?php
 defined('ABSPATH') || exit;
 
+if ($order) {
 
     $paid = $status === 'succeeded' ? true : false;
-    
-    if($paid == false){
-        $paid = $status === 'paid' ? true : false;
+}
 
-    }
+ob_start();
 
+$copy_button_html = $pix_qrcode_url;
+$copy_button_html = ob_get_clean();
+$order_recived_message = 'Voce tem 15min para pagar com qrcode';
+
+
+ob_start();
+
+$qr_code_html = $qrcode_link;
+$qr_code_html = ob_get_clean();
+
+$qr_code = $pix_link;
 ?>
 
 
 <div class="text-center">
+<section class="woocommerce-order-details" style="display: <?php echo $paid ? 'none' : 'block'; ?>;">
 
+
+    <table class="woocommerce-table" style="width: 100%">
+
+        <thead>
+            <tr>
+                <th class="woocommerce-table__product-name product-name">QRCODE</th>
+                <th class="woocommerce-table__product-table product-total">PIX COPIA E COLA</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr class="woocommerce-table">
+
+                <td class="woocommerce-table__product-name product-name">
+                    
+                    <img src="<?php echo $pix_qrcode_url; ?>" />
+                    
+                </td>
+
+                <td class="woocommerce-table__product-total product-total">
+                    <button class="button copy-qr-code"><i class="fa fa-copy fa-lg pr-3"></i>Clique aqui para copiar o código</button><br><br>
+
+<textarea class="button copy-qr-code" cols="40" rows="6" ><?php echo $pix_link; ?></textarea>
+<p class="text-success qrcode-copyed" style="text-align: center; display: none; margin-top: 15px;">Código copiado com sucesso!<br>Vá até o aplicativo do seu banco e cole o código.</p>
+
+
+                </td>
+
+            </tr>
+
+        </tbody>
+
+        
+    </table>
+
+</section>
 
 
 <style>
@@ -156,22 +203,30 @@ defined('ABSPATH') || exit;
         <?php echo nl2br($thank_you_message); ?>
     </div>
     <div id="watingPixPaymentBox" style="display: <?php echo $paid ? 'none' : 'block'; ?>;">
-        
-        <?php 
-        
-        switch ($status) {
-               
-                case 'pre_authorized':
-                  echo 'Pagamento em análise';
-                    break;
-               case 'failed' :
-                     echo 'Pagamento falhou, entre em contato com nossa central de atendimento, ou tente novamente mais trde.';
-                    break;
-                default :
-                    echo 'Ocorreu um erro com seu pagamento';
-                    break;
-            }
+        <?php
+        if (preg_match('/\[copy_button\]/i', $order_recived_message)) {
+            $order_recived_message = preg_replace('/\[copy_button\]/i', $copy_button_html, $order_recived_message, 1);
+        } else {
+            $order_recived_message .= sprintf('<p>%s</p>', $copy_button_html);
+        }
+
+        if (preg_match('/\[qr_code\]/i', $order_recived_message)) {
+            $order_recived_message = preg_replace('/\[qr_code\]/i', $qr_code_html, $order_recived_message, 1);
+        } else {
+            $order_recived_message .= sprintf('<p>%s</p>', $qr_code_html);
+        }
+
+        if (preg_match('/\[text_code\]/i', $order_recived_message)) {
+            $order_recived_message = preg_replace('/\[text_code\]/i', $qr_code, $order_recived_message, 1);
+        }
+
+        if (preg_match('/\[expiration_date\]/i', $order_recived_message)) {
+            $order_recived_message = preg_replace('/\[expiration_date\]/i', date('d/m/Y H:i:s', strtotime($expiration_date)), $order_recived_message, 1);
+        }
+
+        echo $order_recived_message;
         ?>
-        
+
+        <div><input type="hidden" value="<?php echo esc_html($qr_code); ?>" id="pixQrCodeInput"></div>
     </div>
 </div>
