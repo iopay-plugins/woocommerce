@@ -580,19 +580,7 @@ class WC_Iopay_API {
 
   //Save the Order
   $order->save();
-            
-            //global $woocommerce;
-
-            
-//            $total_juros = number_format(($total_juros - $order->get_total()),2);
-//            
-//                $name      = 'Taxa: ' . $total_juros;
-//                $amount    = $total_juros;
-//                $taxable   = true;
-//                $tax_class = '';
-//                $woocommerce->cart->add_fee($name, $amount, $taxable, $tax_class );
-             
-         ///   var_dump($total_juros); exit;
+           
 
             $data['payment_method'] = 'credit';
             $setting = $this->gateway->settings;
@@ -612,10 +600,6 @@ class WC_Iopay_API {
                 'products' => $items
             );
             
-//            echo '<pre>';
-//            var_dump($data['data_creditcard']);
-//            
-//            exit;
 
             if ($setting['antifraude']) {
 
@@ -668,7 +652,7 @@ class WC_Iopay_API {
             if($setting['expiration_date']>0)
             $expiration_date = date('Y-m-d', strtotime("+".$setting['expiration_date']." days",strtotime(date('Y-m-d'))));  
             
-               
+            if($interest_value>0)   {
          
             $data['data_boleto'] = array(
                 'amount' => (int)number_format(($order->get_total() * 100), 0, '', ''),
@@ -689,6 +673,18 @@ class WC_Iopay_API {
                                 'value'=>number_format($late_fee_value,2,'.','')
                             )
             );
+            }else{
+                $data['data_boleto'] = array(
+                'amount' => (int)number_format(($order->get_total() * 100), 0, '', ''),
+                'currency' => 'BRL',
+                'description' => $string_produtos,
+                'statement_descriptor' => $setting['statement_descriptor'],
+                'io_seller_id' => $this->gateway->api_key,
+                'payment_type' => 'boleto',
+                'reference_id' => $order->get_order_number(),
+                'products' => $items);
+                
+            }
             
           
             
@@ -941,9 +937,7 @@ class WC_Iopay_API {
      */
     public function process_regular_payment($order_id) {
 //        
-        ini_set('display_errors',1);
-ini_set('display_startup_erros',1);
-error_reporting(E_ALL);
+     
 //           
             $order = wc_get_order($order_id);
             $data = $this->generate_transaction_data($order);
