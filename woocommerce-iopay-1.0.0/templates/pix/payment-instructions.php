@@ -228,6 +228,5 @@ $qr_code = $pix_link;
         ?>
 
         <div><input type="hidden" value="<?php echo esc_html($qr_code); ?>" id="pixQrCodeInput"></div>
-        <input type="hidden" name="wc_pagarme_pix_order_key" value="<?php echo esc_html(sanitize_text_field($order_key)); ?>"/>
     </div>
 </div>
