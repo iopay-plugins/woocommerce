@@ -63,17 +63,10 @@ if (!class_exists('WC_Iopay')) :
             }
 
             // Runs a specific method right after the plugin activation.
-            add_action('admin_init', array($this, 'after_activation'));
-
-//            add_action('rest_api_init', function () {
-//                register_rest_route('iopay/v1', 'notification', array(
-//                    'methods' => 'GET', // array( 'GET', 'POST', 'PUT', )
-//                    'callback' => 'get_notification',
-//                ));
-//            });
-//            
+            add_action('admin_init', array($this, 'after_activation'));  
+            
+            // Endpoint confirmations payments 
             add_action('rest_api_init', array($this, 'register'));
-
 
             // Dismissible notices.
             add_action('wp_loaded', array($this, 'hide_notices'));
@@ -81,6 +74,11 @@ if (!class_exists('WC_Iopay')) :
             add_action('admin_notices', array($this, 'iopay_documentation_link_notice'));
         }
 
+        /**
+         * Return an notification Iopay.
+         *
+         * @return 200 OR 4**.
+         */
         function register() {
 
             register_rest_route('iopay/v1', '/notification', array(
@@ -203,27 +201,37 @@ if (!class_exists('WC_Iopay')) :
         /**
          * Upgrade.
          *
-         * @since 2.0.0
+         * @since 1.0.0
          */
         private function upgrade() {
             if (is_admin()) {
                 if ($old_options = get_option('woocommerce_iopay_settings')) {
+                    
                     // Banking ticket options.
                     $banking_ticket = array(
                         'enabled' => $old_options['enabled'],
                         'title' => 'Boleto bancário',
+                        'sandbox' => $old_options['sandbox'],
                         'description' => '',
                         'api_key' => $old_options['api_key'],
                         'encryption_key' => $old_options['encryption_key'],
+                        'email_auth' => $old_options['email_auth'],
                         'debug' => $old_options['debug'],
+                        'email_auth' => $old_options['email_auth'],
+                        'interest_rate_value' => $old_options['interest_rate_value'],
+                        'late_fee_value' => $old_options['late_fee_value'],
+                        'expiration_date' => $old_options['expiration_date']
                     );
 
                     // Credit card options.
                     $credit_card = array(
                         'enabled' => $old_options['enabled'],
                         'title' => 'Cartão de crédito',
+                        'email_auth' => $old_options['email_auth'],
+                        'sandbox' => $old_options['sandbox'],
                         'description' => '',
                         'api_key' => $old_options['api_key'],
+                        'register_refused_order' => $old_options['register_refused_order'],
                         'encryption_key' => $old_options['encryption_key'],
                         'checkout' => 'no',
                         'max_installment' => $old_options['max_installment'],
@@ -231,13 +239,17 @@ if (!class_exists('WC_Iopay')) :
                         'interest_rate' => $old_options['interest_rate'],
                         'free_installments' => $old_options['free_installments'],
                         'debug' => $old_options['debug'],
+                        'free_installments' => $old_options['free_installments'],
+                        'antifraude' => $old_options['antifraude']
                     );
-
+                    
                     // PIX.
                     $pix = array(
                         'enabled' => $old_options['enabled'],
                         'title' => 'PIX',
+                        'sandbox' => $old_options['sandbox'],
                         'description' => '',
+                        'email_auth' => $old_options['email_auth'],
                         'api_key' => $old_options['api_key'],
                         'encryption_key' => $old_options['encryption_key'],
                         'debug' => $old_options['debug'],
@@ -246,8 +258,6 @@ if (!class_exists('WC_Iopay')) :
                     update_option('woocommerce_iopay-banking-ticket_settings', $banking_ticket);
                     update_option('woocommerce_iopay-credit-card_settings', $credit_card);
                     update_option('woocommerce_iopay-pix_settings', $pix);
-
-
                     delete_option('woocommerce_iopay_settings');
                 }
             }
@@ -301,69 +311,31 @@ if (!class_exists('WC_Iopay')) :
             }
         }
 
+      
+
         /**
-         * Process the order status.
-         *
-         * @param WC_Order $order  Order data.
-         * @param string   $status Transaction status.
+         * Get Info Order 
+         * @param string $token Token geretation subject.
+         * @param string $url   Url Endpoint IOPAY.
+         * @param string $id    id Transactiom message.
          */
-        public function process_order_status($order, $status) {
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'Payment status for order ' . $order->get_order_number() . ' is now: ' . $status);
+        private function iopayRequestTransaction($token, $url, $id) {
+          
+            header('Content-Type: application/json');
+            $ch = curl_init($url.='v1/transaction/get/' . $id);
+            $authorization = "Authorization: Bearer " . $token;
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', $authorization)); // Inject the token into the header
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET'); // Specify the request method as get
+            $result = curl_exec($ch);
+            curl_close($ch);
+            $dados = json_decode($result);
+            
+            if(!isset($dados->success)){
+                return false;
             }
 
-            switch ($status) {
-                case 'succeeded' :
-                    if (!in_array($order->get_status(), array('processing', 'completed'), true)) {
-                        $order->update_status('on-hold', __('Iopay: The transaction was authorized.', 'woocommerce-iopay'));
-                    }
-
-                    break;
-                case 'pre_authorized':
-                    $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
-                    $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
-
-                    /* translators: %s transaction details url */
-                    $order->update_status('on-hold', __('Iopay: You should manually analyze this transaction to continue payment flow, access %s to do it!', 'woocommerce-iopay'), $transaction_url);
-
-                    break;
-                case 'paid' :
-                    if (!in_array($order->get_status(), array('processing', 'completed'), true)) {
-                        $order->add_order_note(__('Iopay: Transaction paid.', 'woocommerce-iopay'));
-                    }
-
-                    // Changing the order for processing and reduces the stock.
-                    $order->payment_complete();
-
-                    break;
-
-                case 'failed' :
-                    $order->update_status('failed', __('Iopay: The transaction was rejected by the card company or by fraud.', 'woocommerce-iopay'));
-
-                    $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
-                    $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
-
-                    $this->send_email(
-                            sprintf(esc_html__('The transaction for order %s was rejected by the card company or by fraud', 'woocommerce-iopay'), $order->get_order_number()), esc_html__('Transaction failed', 'woocommerce-iopay'), sprintf(esc_html__('Order %1$s has been marked as failed, because the transaction was rejected by the card company or by fraud, for more details, see %2$s.', 'woocommerce-iopay'), $order->get_order_number(), $transaction_url)
-                    );
-
-                    break;
-                case 'refunded' :
-                    $order->update_status('refunded', __('Iopay: The transaction was refunded/canceled.', 'woocommerce-iopay'));
-
-                    $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
-                    $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
-
-                    $this->send_email(
-                            sprintf(esc_html__('The transaction for order %s refunded', 'woocommerce-iopay'), $order->get_order_number()), esc_html__('Transaction refunded', 'woocommerce-iopay'), sprintf(esc_html__('Order %1$s has been marked as refunded by Iopay, for more details, see %2$s.', 'woocommerce-iopay'), $order->get_order_number(), $transaction_url)
-                    );
-
-                    break;
-
-
-                default :
-                    break;
-            }
+            return $dados->success;
         }
 
         /**
@@ -377,51 +349,86 @@ if (!class_exists('WC_Iopay')) :
             $mailer = WC()->mailer();
             $mailer->send(get_option('admin_email'), $subject, $mailer->wrap_message($title, $message));
         }
-
+        
+        
+        /**
+         * Recept notification IOPAY.
+         *
+         * @param string WP_REST_Request $request $type, $id, $reference_id.
+         */
         function get_notification(WP_REST_Request $request) {
-
-
+         
             @ob_clean();
             $parameters = $request->get_params();
             $id = $parameters['id'];
             $reference_id = (int) $parameters['reference_id'];
             $type = $parameters['type'];
+            $url = '';
+            $token = '';
+            
+            if($type == 'credit'){
+                 $wc_iopay_api = new WC_Iopay_API(new WC_Iopay_Credit_Card_Gateway());
+            }elseif($type == 'boleto'){
+                $wc_iopay_api = new WC_Iopay_API(new WC_Iopay_Banking_Ticket_Gateway());
+            }
+            elseif($type == 'pix'){
+                $wc_iopay_api = new WC_Iopay_API(new WC_Iopay_Pix_Gateway());
+            }else{
+                wp_die(esc_html__('Iopay Request Failure', 'woocommerce-iopay'), '', array('response' => 402));
+            }
+            
+             if(!$wc_iopay_api){
+                wp_die(esc_html__('Iopay Request Failure', 'woocommerce-iopay'), '', array('response' => 402));
+             }
+            
+            $url = $wc_iopay_api->get_api_url();
+            $token = $wc_iopay_api->getIOPayAuthorization();
+            
+            if($url == '' || $token == '' || $id == ''){
+                
+                wp_die(esc_html__('Iopay Request Failure', 'woocommerce-iopay'), '', array('response' => 402));
+
+            }
             $order = wc_get_order($reference_id);
-
-
-
-            // data_payment_iopay
-
             $post_data = get_post_meta($order->id, 'data_success_iopay', true);
 
             if ($post_data["id"] == $id) {
+                
+             //consultar IOPAY
+                $dados_iopay = $this->iopayRequestTransaction($token, $url, $id);
+                
+                $sales_receipt = $dados_iopay->sales_receipt;
+                $customer = $dados_iopay->customer;
+                $id_retorno = $dados_iopay->id;
+                $amount = $dados_iopay->amount;
+                $payment_method = $dados_iopay->payment_method; 
+                $status_iopay = $dados_iopay->status; 
+               
+                if($order->get_status() == 'on-hold'){
+                 
+                    if ($id_retorno != $post_data["id"]) {
+                        wp_die(esc_html__('ID nao corresponde', 'woocommerce-iopay'), '', array('response' => 402));
+                    }
+                    elseif($amount != $order->get_total()){
+                        wp_die(esc_html__('Pagamento divergente', 'woocommerce-iopay'), '', array('response' => 402));
+                    }
 
-                //consultar IOPAY
-                $dados_iopay['return'] = 'ok';
-                $dados_iopay['id'] = 38;
-
-                $status = sanitize_text_field('succeeded');
-
-                if ($order && $order->id == $dados_iopay["id"]) {
-                    $this->process_order_status($order, $status);
-                }else {
+                    $status = sanitize_text_field($status_iopay);
                     
-                    wp_die(esc_html__('Iopay Request Failure', 'woocommerce-iopay'), '', array('response' => 402));
-           
+                    
+                    if ($order) {
+                        $wc_iopay_api->process_order_status($order, $status);
+                    } else {
+
+                        wp_die(esc_html__('Iopay Request Failure', 'woocommerce-iopay'), '', array('response' => 402));
+                    }
                 }
-                
-                
-        }
+            }
 
             return new WP_REST_Response("ok", 200);
         }
 
-//        function get_notification(WP_REST_Request $request) {
-//            // You can get the combined, merged set of parameters:
-//            $parameters = $request->get_params();
-//
-//            return array($parameters);
-//        }
+     
     }
 
     add_action('plugins_loaded', array('WC_Iopay', 'get_instance'));

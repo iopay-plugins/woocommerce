@@ -21,7 +21,7 @@
             copyToClipboard(copyText);
 
             function copyToClipboard(text) {
-                alert('Link copiado com sucesso: ' + text)
+                alert('Copiado com sucesso: ' + text)
                 var sampleTextarea = document.createElement("textarea");
                 document.body.appendChild(sampleTextarea);
                 sampleTextarea.value = text; //save main text in it

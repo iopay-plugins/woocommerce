@@ -25,8 +25,7 @@ class WC_Iopay_Pix_Gateway extends WC_Payment_Gateway {
         $this->has_fields = true;
         $this->method_title = __('Iopay - PIX', 'woocommerce-iopay');
         $this->method_description = __('Accept PIX payments using Iopay.', 'woocommerce-iopay');
-        $this->view_transaction_url = 'https://minhaconta.iopay.com.br/login/#/transactions/%s';
-        $this->supports = array('refunds');
+   
 
         // Load the form fields.
         $this->init_form_fields();
@@ -115,7 +114,6 @@ class WC_Iopay_Pix_Gateway extends WC_Payment_Gateway {
                 'type' => 'title',
                 'description' => sprintf(__('Por favor cadastre A URL de notificação <span style="font-size:18px; font-weight:bold">( <a href="#" id="copy_link_iopay"  >' . site_url() . '/iopay/v1/notification</a>  )</span> em seu painel:  %s.', 'woocommerce-iopay'), '<a href="https://minhaconta.iopay.com.br/settings/online_payment">' . __('Iopay Dashboard > My Account page', 'woocommerce-iopay') . '</a>'),
             ),
-            
             'email_auth' => array(
                 'title' => __('E-mail Auth', 'woocommerce-iopay'),
                 'type' => 'email',
@@ -158,7 +156,6 @@ class WC_Iopay_Pix_Gateway extends WC_Payment_Gateway {
         if ($description = $this->get_description()) {
             echo wp_kses_post(wpautop(wptexturize($description)));
         }
-
         $cart_total = $this->get_order_total();
 
         echo '<div id="iopay-checkout-params" ';
@@ -178,18 +175,7 @@ class WC_Iopay_Pix_Gateway extends WC_Payment_Gateway {
         return $this->api->process_regular_payment($order_id);
     }
 
-    /**
-     * Refund the payment.
-     *
-     * @param int $order_id Order ID.
-     * @param float $amount Amount to refund.
-     * @param string $reason Reason to refund.
-     *
-     * @return bool Successfully refunded.
-     */
-    public function process_refund($order_id, $amount = null, $reason = '') {
-        return $this->api->do_refund($order_id, $amount);
-    }
+   
 
     /**
      * Thank You page message.
@@ -201,12 +187,12 @@ class WC_Iopay_Pix_Gateway extends WC_Payment_Gateway {
         $data = get_post_meta($order_id, 'data_payment_iopay', true);
         $data_success = get_post_meta($order_id, 'data_success_iopay', true);
         $id_transaction = $data['id'];
-
-
+       
         if (isset($id_transaction) && in_array($order->get_status(), array('pending', 'processing', 'on-hold'), true)) {
             wc_get_template(
                     'pix/payment-instructions.php', array(
                 'order' => $order,
+                'status' =>$data_success['status'],      
                 'qrcode_link' => $data_success['qrcode_link'],
                 'pix_qrcode_url' => $data_success['pix_qrcode_url'],
                 'expected_on' => $data_success['expected_on'],

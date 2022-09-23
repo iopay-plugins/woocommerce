@@ -42,9 +42,7 @@ class WC_Iopay_Banking_Ticket_Gateway extends WC_Payment_Gateway {
         $this->encryption_key = $this->get_option('encryption_key');
         $this->email_auth = $this->get_option('email_auth');
         $this->debug = $this->get_option('debug');
-        $this->async = $this->get_option('async');
         $this->interest_rate_value = $this->get_option('interest_rate_value');
-        //  $this->late_fee_mode          = $this->get_option( 'late_fee_mode' );
         $this->late_fee_value = $this->get_option('late_fee_mode');
         $this->expiration_date = $this->get_option('expiration_date');
 
@@ -229,7 +227,7 @@ class WC_Iopay_Banking_Ticket_Gateway extends WC_Payment_Gateway {
 
 
         if (isset($data['url']) && in_array($order->get_status(), array('pending', 'processing', 'on-hold'), true)) {
-            $template = 'no' === $this->async ? 'payment' : 'async';
+            $template = 'payment';
 
             wc_get_template(
                     'banking-ticket/' . $template . '-instructions.php', array(

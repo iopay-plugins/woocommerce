@@ -60,6 +60,8 @@ class WC_Iopay_API {
      * @param WC_Payment_Gateway $gateway Gateway instance.
      */
     public function __construct($gateway = null) {
+        
+    
         $this->gateway = $gateway;
         add_action('admin_enqueue_scripts', array($this, 'iopay_scripts'));
     }
@@ -146,65 +148,33 @@ class WC_Iopay_API {
 
     /**
      * Do requests in the Iopay API.
-     *
-     * @param  string $endpoint API Endpoint.
-     * @param  string $method   Request method.
      * @param  array  $data     Request data.
-     * @param  array  $headers  Request headers.
      *
      * @return array            Request response.
      */
-    protected function do_request($endpoint, $method = 'POST', $data = array(), $headers = array()) {
-        $params = array(
-            'method' => $method,
-            'timeout' => 60,
-        );
-
-        $iopay_customer = get_user_meta($data['customer']['id'], 'iopay_customer');
-
-          $iopay_customer[0]['id'] = '049b81a54790429a961da28742f594cf';
+    protected function do_request($data = array()) {
        
-        
-        $token = $this->getIOPayAuthorization();
-
+        $iopay_customer = get_user_meta($data['customer']['id'], 'iopay_customer_'.$this->gateway->api_key);
+       
         if ('boleto' == $data['payment_method']) {
-
-            $data = $data['data_boleto'];
-            $endpoint = 'v1/transaction/new/' . $iopay_customer[0]['id'];
-        }
-
-        if ('pix' == $data['payment_method']) {
-            $data = $data['data_pix'];
-            $endpoint = 'v1/transaction/new/' . $iopay_customer[0]['id'];
-        }
-
-
-        if ('credit' == $data['payment_method']) {
-            //   var_dump($iopay_customer); exit;
-
-            $data = $data['data_creditcard'];
-            $endpoint = 'v1/transaction/new/' . $iopay_customer[0]['id'];
+            $data = $data['data_boleto'];       
+        }elseif ('pix' == $data['payment_method']) {
+            $data = $data['data_pix'];         
+        }elseif ('credit' == $data['payment_method']) {
+            $data = $data['data_creditcard'];    
         }
         
-         
-
-        //   var_dump($data['payment_method']);
-
-
-
-        return $this->iopayRequest($token, $this->get_api_url() . $endpoint, $data);
+        $endpoint = 'v1/transaction/new/' . $iopay_customer[0]['id'];
+        
+        return $this->iopayRequest($this->get_api_url() . $endpoint, $data);
     }
 
-    private function iopayRequest($token, $url, $data, $method = 'POST') {
-
-       
-//         
-
+    private function iopayRequest($url, $data, $method = 'POST') {
+          
         header('Content-Type: application/json');
-
+        $token = $this->getIOPayAuthorization();
         $ch = curl_init($url);
         $post = json_encode($data);
-
         $authorization = "Authorization: Bearer " . $token;
 
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', $authorization)); // Inject the token into the header
@@ -217,197 +187,140 @@ class WC_Iopay_API {
         }
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, ($post));
-        //curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); // This will follow any redirects
-
         $result = curl_exec($ch);
-
-
-
-//        echo '<pre>';
-//        var_dump(json_encode($authorization));
-//        var_dump(json_encode($url));
-//         var_dump(json_encode($data));
-//        var_dump(json_encode($result));
-//       
-//        exit;
-
-
-
         curl_close($ch);
-
         $dados = json_decode($result);
-
-
-
-
-
-
         if ($dados->success) {
-
-
-
             return (array) $dados->success;
         }
 
-        return false;
+        return $dados;
     }
 
     /**
-     * Obtem o Bearer token para utilização dos recursos da API IOPAY.
-     *
-     * Quando type 'transaction': Obtém o Bearer token responsável por gerar e manipular transações (esse token desse ser utilizado exclusivamente no backend)
-     * Quando type 'token': Obtém o Bearer token responsável por TOKENIZAR cartões de crédito (esse token desse pode ser utilizado no frontend e funciona somente e unicamente para tokenizar cartões)
-     *
-     * @param string $type (can be: token or transaction)
+     * Obtem o access_token para utilização de cartao de credito dos recursos da API IOPAY.
      * @return mixed
      */
-    private function getIOPayAuthorizationToken() {
+//    private function getIOPayAuthorizationToken() {
+//
+//
+//
+//        $settings = $this->gateway->settings;
+//
+//        $credentials = array(
+//            'io_seller_id' => $settings['api_key'],
+//            'email' => $settings['email_auth'],
+//            'secret' => utf8_encode($settings['encryption_key'])
+//        );
+//
+//
+//
+//        $ch = curl_init();
+//
+//        $uri = $this->get_api_url() . 'v1/card/authentication';
+//
+//
+//
+//        curl_setopt($ch, CURLOPT_URL, $uri);
+//        curl_setopt($ch, CURLOPT_POST, 1);
+//        curl_setopt($ch, CURLOPT_PORT, 443);
+//        //curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(json_encode($credentials)));
+//        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($credentials));
+//        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+//
+//        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//
+//        $server_output = curl_exec($ch);
+//
+//
+//
+//
+//        curl_close($ch);
+//
+//        $auth = json_decode($server_output);
+//        $token = $auth->access_token;
+//
+//        if ($token == '' || $token == null) {
+//            return 'Unauthorized';
+//        }
+//
+//        if (isset($auth->error)) {
+//            return $auth->error;
+//        } else {
+//            return $token;
+//        }
+//    }
 
-
-
-        $settings = $this->gateway->settings;
-
-        $credentials = array(
-            'io_seller_id' => $settings['api_key'],
-            'email' => $settings['email_auth'],
-            'secret' => utf8_encode($settings['encryption_key'])
-        );
-
-
-
-        $ch = curl_init();
-
-        $uri = $this->get_api_url() . 'v1/card/authentication';
-
-
-
-        curl_setopt($ch, CURLOPT_URL, $uri);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_PORT, 443);
-        //curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(json_encode($credentials)));
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($credentials));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $server_output = curl_exec($ch);
-
-
-
-
-        curl_close($ch);
-
-        $auth = json_decode($server_output);
-        $token = $auth->access_token;
-
-        if ($token == '' || $token == null) {
-            return 'Unauthorized';
-        }
-
-        if (isset($auth->error)) {
-            return $auth->error;
-        } else {
-            return $token;
-        }
-    }
-
-    private function getIOPayAuthorizationTokenizacao() {
-
-
-
-        $settings = $this->gateway->settings;
-
-        $credentials = array(
-            'io_seller_id' => $settings['api_key'],
-            'email' => $settings['email_auth'],
-            'secret' => utf8_encode($settings['encryption_key'])
-        );
-
-
-
-        $ch = curl_init();
-
-        $uri = $this->get_api_url() . 'v1/card/tokenize/token';
-
-
-
-        curl_setopt($ch, CURLOPT_URL, $uri);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_PORT, 443);
-        //curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(json_encode($credentials)));
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($credentials));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $server_output = curl_exec($ch);
-
-
-
-
-        curl_close($ch);
-
-        $auth = json_decode($server_output);
-        $token = $auth->access_token;
-
-        if ($token == '' || $token == null) {
-            return 'Unauthorized';
-        }
-
-        if (isset($auth->error)) {
-            return $auth->error;
-        } else {
-            return $token;
-        }
-    }
+    
+    /**
+     * Obtem o access_token para utilização de cartao de credito dos recursos da API IOPAY.
+     * @return mixed
+     */
+//    private function getIOPayAuthorizationTokenizacao() {
+//
+//        $settings = $this->gateway->settings;
+//        $credentials = array(
+//            'io_seller_id' => $settings['api_key'],
+//            'email' => $settings['email_auth'],
+//            'secret' => utf8_encode($settings['encryption_key'])
+//        );
+//        $ch = curl_init();
+//        $uri = $this->get_api_url() . 'v1/card/tokenize/token';
+//        curl_setopt($ch, CURLOPT_URL, $uri);
+//        curl_setopt($ch, CURLOPT_POST, 1);
+//        curl_setopt($ch, CURLOPT_PORT, 443);
+//        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($credentials));
+//        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+//        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//        $server_output = curl_exec($ch);
+//        curl_close($ch);
+//
+//        $auth = json_decode($server_output);
+//        $token = $auth->access_token;
+//
+//        if ($token == '' || $token == null) {
+//            return 'Unauthorized';
+//        }
+//
+//        if (isset($auth->error)) {
+//            return $auth->error;
+//        } else {
+//            return $token;
+//        }
+//    }
 
     /**
-     * Obtem o Bearer token para utilização dos recursos da API IOPAY.
-     *
-     * Quando type 'transaction': Obtém o Bearer token responsável por gerar e manipular transações (esse token desse ser utilizado exclusivamente no backend)
-     * Quando type 'token': Obtém o Bearer token responsável por TOKENIZAR cartões de crédito (esse token desse pode ser utilizado no frontend e funciona somente e unicamente para tokenizar cartões)
-     *
-     * @param string $type (can be: token or transaction)
+     * Obtem o access_token para utilização dos recursos da API IOPAY.
      * @return mixed
      */
-    private function getIOPayAuthorization() {
-
-
+    public function getIOPayAuthorization() {
 
         $settings = $this->gateway->settings;
-
         $credentials = array(
             'io_seller_id' => $settings['api_key'],
             'email' => $settings['email_auth'],
             'secret' => utf8_encode($settings['encryption_key'])
         );
-
-
         $ch = curl_init();
         $uri = $this->get_api_url() . 'auth/login';
         curl_setopt($ch, CURLOPT_URL, $uri);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_PORT, 443);
-        //curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(json_encode($credentials)));
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($credentials));
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
-
         curl_close($ch);
-
         $auth = json_decode($server_output);
         $token = $auth->access_token;
-
         if ($token == '' || $token == null) {
             return 'Unauthorized';
         }
 
         if (isset($auth->error)) {
             return $auth->error;
-        } else {
-            return $token;
         }
+        return $token;
     }
 
     /**
@@ -470,7 +383,8 @@ class WC_Iopay_API {
      *
      * @return array            Transaction data.
      */
-    public function generate_transaction_data($order, $posted) {
+    public function generate_transaction_data($order) {
+      
         // Set the request data.
         $data = array(
             'io_seller_id' => $this->gateway->api_key,
@@ -488,9 +402,6 @@ class WC_Iopay_API {
                 'order_number' => $order->get_order_number(),
             ),
         );
-
-
-
 
 
         if ($order->billing_persontype == 1) {
@@ -512,24 +423,18 @@ class WC_Iopay_API {
 
             $billing_phone = trim($ddd) . $number_phone;
         }
-        $iopay_customer = get_user_meta($order->get_user_id(), 'iopay_customer');
+        $iopay_customer = false; //get_user_meta($order->get_user_id(), 'iopay_customer_'.$this->gateway->api_key);
         
-      
-//      ini_set('display_errors',1);
-//ini_set('display_startup_erros',1);
-//error_reporting(E_ALL);
 
         if (!$iopay_customer) {
-            $token = $this->getIOPayAuthorization();
             
-          
             $endpoint = 'v1/customer/new';
             $data_customer = array(
                 'first_name' => $order->billing_first_name,
                 'last_name' => $order->billing_last_name,
                 'email' => $order->billing_email,
                 'taxpayer_id' => $documento,
-                'phone_number' => $order->billing_phone,
+                'phone_number' => $billing_phone,
                 'customer_type' => $customer_type,
                 'address' => array(
                     'line1' => $order->billing_address_1,
@@ -543,13 +448,14 @@ class WC_Iopay_API {
             );
 
 
-            $iopay_customer = $this->iopayRequest($token, $this->get_api_url() . $endpoint, $data_customer);
-            update_user_meta($order->get_user_id(), 'iopay_customer', array_map('sanitize_text_field', $iopay_customer));
+            $iopay_customer = $this->iopayRequest($this->get_api_url() . $endpoint, $data_customer);
+       
+            update_user_meta($order->get_user_id(), 'iopay_customer_'.$this->gateway->api_key, array_map('sanitize_text_field', $iopay_customer));
         }
 
         $string_produtos = '';
 
-        foreach ($order->get_items() as $item_id => $item) {
+        foreach ($order->get_items() as $item) {
 
 
             $dados_item = $item->get_data();
@@ -636,44 +542,35 @@ class WC_Iopay_API {
 
             $capture = 'yes' === $this->gateway->capture ? 1 : 0;
 
-
-//            ini_set('display_errors',1);
-//ini_set('display_startup_erros',1);
-//error_reporting(E_ALL);
-//            
             $installment = $_POST['iopay_installments'];
-            $card_id = $_POST['card_id'];
-
-
-
-
             $destino = 'interest_rate_installment_' . $installment;
             $$destino = $destino;
 
             $interest_rate = $this->$destino;
+            $total_juros = $order->get_total();
 
             if ($interest_rate > 0) {
                 $total_parcelado = $order->get_total() / $installment;
                 $parcelado = (((($total_parcelado) * $interest_rate) / 100) + $total_parcelado);
+                $total_juros = (((($order->get_total()) * $interest_rate) / 100) + $order->get_total());
             } else {
                 $parcelado = $order->get_total() / $installment;
+                
             }
+            
+           
 
             $data['payment_method'] = 'credit';
             $data['async'] = 'yes' === $this->gateway->async;
             $setting = $this->gateway->settings;
-
-           
-
-
-
-
+            
+            
             $data['data_creditcard'] = array(
-                'amount' => number_format(($order->get_total() * 100), 0, '', ''),
+                'amount' => number_format(($total_juros * 100), 0, '', ''),
                 'currency' => 'BRL',
                 'description' => 'Produto teste',
                 'token' => $_POST['token'],
-                'capture' => $capture,
+                'capture' => 1,
                 'statement_descriptor' => 'Compra com cartao',
                 'installment_plan' => array('number_installments' => (int) $installment),
                 'io_seller_id' => $this->gateway->api_key,
@@ -724,7 +621,6 @@ class WC_Iopay_API {
         } elseif ('iopay-banking-ticket' === $this->gateway->id) {
 
             $data['payment_method'] = 'boleto';
-            $data['async'] = 'yes' === $this->gateway->async;
             $setting = $this->gateway->settings;
             $expiration_date = date('Y-m-d', strtotime("+3 days",strtotime(date('Y-m-d'))));  
             $interest_value =  (double)str_replace(',','.', $setting['interest_rate_value']);
@@ -825,46 +721,6 @@ class WC_Iopay_API {
     }
 
     /**
-     * Get transaction data.
-     *
-     * @param  WC_Order $order Order data.
-     * @param  string   $token Checkout token.
-     *
-     * @return array           Response data.
-     */
-    public function get_transaction_data($order, $token) {
-        if ('yes' === $this->gateway->debug) {
-            $this->gateway->log->add($this->gateway->id, 'Getting transaction data for order ' . $order->get_order_number() . '...');
-        }
-
-        $response = $this->do_request('transactions/' . $token, 'GET', array('api_key' => $this->gateway->api_key));
-
-        if (is_wp_error($response)) {
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'WP_Error in getting transaction data: ' . $response->get_error_message());
-            }
-
-            return array();
-        } else {
-            $data = json_decode($response['body'], true);
-
-            if (isset($data['errors'])) {
-                if ('yes' === $this->gateway->debug) {
-                    $this->gateway->log->add($this->gateway->id, 'Failed to get transaction data: ' . print_r($response, true));
-                }
-
-                return $data;
-            }
-
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'Transaction data obtained successfully!');
-            }
-
-            return $data;
-        }
-    }
-
-    /**
      * Generate checkout data.
      *
      * @param  WC_Order $order Order data.
@@ -930,24 +786,20 @@ class WC_Iopay_API {
      *
      * @return array           Response data.
      */
-    public function do_transaction($order, $args, $token = '') {
+    public function do_transaction($order, $args) {
 
         if ('yes' === $this->gateway->debug) {
             $this->gateway->log->add($this->gateway->id, 'Doing a transaction for order ' . $order->get_order_number() . '...');
         }
 
-        $endpoint = 'transactions';
-
-
-        if (!empty($token)) {
-            $endpoint .= '/' . $token . '/capture';
-        }
-
-        $response = $this->do_request($endpoint, 'POST', $args);
+      
+        $response = $this->do_request($args);
+        
+    
 
         if (is_wp_error($response)) {
             if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'WP_Error in doing the transaction: ' . $response->get_error_message());
+                $this->gateway->log->add($this->gateway->id, 'WP_Error in doing the transaction: ' . $response->error->message);
             }
 
             return array();
@@ -955,7 +807,7 @@ class WC_Iopay_API {
 
             $data = $response;
 
-            if (isset($data['errors'])) {
+            if (isset($data->error)) {
                 if ('yes' === $this->gateway->debug) {
                     $this->gateway->log->add($this->gateway->id, 'Failed to make the transaction: ' . print_r($response, true));
                 }
@@ -971,128 +823,7 @@ class WC_Iopay_API {
         }
     }
 
-    /**
-     * Refund the order.
-     *
-     * @param  WC_Order $order Order data.
-     * @param  float    $amount Amount to refund.
-     *
-     * @return bool     Successfully refunded.
-     */
-    public function do_refund($order_id, $amount) {
-        $order = wc_get_order($order_id);
-        $transaction_id = get_post_meta($order_id, '_wc_iopay_transaction_id', true);
-        $endpoint = 'transactions/' . $transaction_id . '/refund';
-        $data = array(
-            'api_key' => $this->gateway->api_key,
-        );
 
-        if ('yes' === $this->gateway->debug) {
-            $this->gateway->log->add($this->gateway->id, 'Starting refunding for order. ID: ' . $order->get_order_number() . '...');
-        }
-
-        if (!in_array($order->get_status(), array('processing', 'completed'), true)) {
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'Can\'t refund unpaid order. ID: ' . $order->get_order_number());
-            }
-
-            return false;
-        }
-
-        if ($order->get_total() < $amount) {
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'Can\'t refund more than the paid amount. ID: ' . $order->get_order_number());
-            }
-
-            return false;
-        }
-
-        if ($amount <= 0) {
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'Can\'t refund when amount is zero or negative. ID: ' . $order->get_order_number());
-            }
-
-            return false;
-        }
-
-        $is_partially_refund = $amount < $order->get_total();
-
-        if ($is_partially_refund) {
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'Refunding order partially. ID: ' . $order->get_order_number() . '...');
-                $this->gateway->log->add($this->gateway->id, 'Order total: ' . $order->get_total() . ', Refund total: ' . $amount);
-            }
-
-            $data['amount'] = $amount * 100;
-        }
-
-        $response = $this->do_request($endpoint, 'POST', $data);
-
-        if (is_wp_error($response)) {
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'Error doing refund: ' . $response->get_error_message());
-            }
-
-            return false;
-        }
-
-        $response_data = json_decode($response['body'], true);
-
-        if (isset($response_data['errors'])) {
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'Failed to make the refund: ' . print_r($response, true));
-            }
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Do the transaction.
-     *
-     * @param  WC_Order $order Order data.
-     * @param  string   $token Checkout token.
-     *
-     * @return array           Response data.
-     */
-    public function cancel_transaction($order, $token) {
-        if ('yes' === $this->gateway->debug) {
-            $this->gateway->log->add($this->gateway->id, 'Cancelling transaction for order ' . $order->get_order_number() . '...');
-        }
-
-        $endpoint = 'transactions';
-        if (!empty($token)) {
-            $endpoint .= '/' . $token . '/refund';
-        }
-
-        $response = $this->do_request($endpoint, 'POST', array('api_key' => $this->gateway->api_key));
-
-        if (is_wp_error($response)) {
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'WP_Error in doing the transaction cancellation: ' . $response->get_error_message());
-            }
-
-            return array();
-        } else {
-            $data = json_decode($response['body'], true);
-
-            if (isset($data['errors'])) {
-                if ('yes' === $this->gateway->debug) {
-                    $this->gateway->log->add($this->gateway->id, 'Failed to cancel the transaction: ' . print_r($response, true));
-                }
-
-                return $data;
-            }
-
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'Transaction canceled successfully! The response is: ' . print_r($data, true));
-            }
-
-            return $data;
-        }
-    }
 
     /**
      * Get card brand name.
@@ -1124,7 +855,7 @@ class WC_Iopay_API {
      * @param array $data Order data.
      */
     protected function save_order_meta_fields($id, $data) {
-
+        
         $data['payment_method'] = (array) $data['payment_method'];
         $data['payment_method']['metadata'] = (array) $data['payment_method']['metadata'];
 
@@ -1172,43 +903,32 @@ class WC_Iopay_API {
      * @return array Redirect data.
      */
     public function process_regular_payment($order_id) {
-        $order = wc_get_order($order_id);
-
-        $is_checkout_iopay = isset($this->gateway->checkout) && 'yes' === $this->gateway->checkout;
-        $register_refused_order = isset($this->gateway->register_refused_order) && 'yes' === $this->gateway->register_refused_order;
-
-        if ($is_checkout_iopay && !$register_refused_order) {
-
-            if (!empty($_POST['iopay_checkout_token'])) {
-                $token = sanitize_text_field(wp_unslash($_POST['iopay_checkout_token']));
-                $data = $this->generate_checkout_data($order, $token);
-
-                // Cancel the payment is irregular.
-                if (isset($data['error'])) {
-                    $this->cancel_transaction($order, $token);
-                    $order->update_status('failed', $data['error']);
-
-                    return array(
-                        'result' => 'success',
-                        'redirect' => $this->gateway->get_return_url($order),
-                    );
-                }
-
-                $transaction = $this->do_transaction($order, $data, $token);
-            } else {
-                $transaction = array('errors' => array(array('message' => __('Missing credit card data, please review your data and try again or contact us for assistance.', 'woocommerce-iopay'))));
-            }
-        } else {
-
-            $data = $this->generate_transaction_data($order, $_POST);
+//        
+        ini_set('display_errors',1);
+ini_set('display_startup_erros',1);
+error_reporting(E_ALL);
+//           
+            $order = wc_get_order($order_id);
+            $data = $this->generate_transaction_data($order);
             $transaction = $this->do_transaction($order, $data);
-        }
+            
+            
+//            echo '<pre>';
+//            var_dump($transaction);
+//            exit;
+//        
 
 
-        if (isset($transaction['errors'])) {
-            foreach ($transaction['errors'] as $error) {
-                wc_add_notice($error['message'], 'error');
-            }
+        if (isset($transaction->status)) {
+              wc_add_notice($transaction->status, 'error');
+            
+
+            return array(
+                'result' => 'fail',
+            );
+        } elseif (isset($transaction->error)) {
+              wc_add_notice($transaction->error->message, 'error');
+            
 
             return array(
                 'result' => 'fail',
@@ -1226,25 +946,6 @@ class WC_Iopay_API {
                 'redirect' => $this->gateway->get_return_url($order),
             );
         }
-    }
-
-    /**
-     * Check if Iopay response is validity.
-     *
-     * @param  array $ipn_response IPN response data.
-     *
-     * @return bool
-     */
-    public function check_fingerprint($ipn_response) {
-        if (isset($ipn_response['id']) && isset($ipn_response['current_status']) && isset($ipn_response['fingerprint'])) {
-            $fingerprint = sha1($ipn_response['id'] . '#' . $this->gateway->api_key);
-
-            if ($fingerprint === $ipn_response['fingerprint']) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -1269,67 +970,64 @@ class WC_Iopay_API {
      */
     public function process_order_status($order, $status) {
         if ('yes' === $this->gateway->debug) {
-            $this->gateway->log->add($this->gateway->id, 'Payment status for order ' . $order->get_order_number() . ' is now: ' . $status);
-        }
+                $this->gateway->log->add($this->gateway->id, 'Payment status for order ' . $order->get_order_number() . ' is now: ' . $status);
+            }
+            switch ($status) {
+                case 'succeeded' :
+                    if (!in_array($order->get_status(), array('processing', 'completed'), true)) {
+                     
+                        $order->update_status('processing', __('Iopay: The transaction was authorized.', 'woocommerce-iopay'));
+                    }
 
-        switch ($status) {
-            case 'succeeded' :
-                if (!in_array($order->get_status(), array('processing', 'completed'), true)) {
-                    $order->update_status('on-hold', __('Iopay: The transaction was authorized.', 'woocommerce-iopay'));
-                }
+                    break;
+                case 'pre_authorized':
+                    $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
+                    $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
 
-                break;
-            case 'pre_authorized':
-                $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
-                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
+                    /* translators: %s transaction details url */
+                    $order->update_status('on-hold', __('Iopay: You should manually analyze this transaction to continue payment flow, access %s to do it!', 'woocommerce-iopay'), $transaction_url);
 
-                /* translators: %s transaction details url */
-                $order->update_status('on-hold', __('Iopay: You should manually analyze this transaction to continue payment flow, access %s to do it!', 'woocommerce-iopay'), $transaction_url);
+                    break;
+                case 'paid' :
+                    if (!in_array($order->get_status(), array('processing', 'completed'), true)) {
+                        $order->add_order_note(__('Iopay: Transaction paid.', 'woocommerce-iopay'));
+                    }
 
-                break;
-             case 'paid' :
-                if (!in_array($order->get_status(), array('processing', 'completed'), true)) {
-                    $order->add_order_note(__('Iopay: Transaction paid.', 'woocommerce-iopay'));
-                }
+                    // Changing the order for processing and reduces the stock.
+                    $order->payment_complete();
 
-                // Changing the order for processing and reduces the stock.
-                $order->payment_complete();
+                    break;
 
-                break;
-            
-            case 'failed' :
-                $order->update_status('failed', __('Iopay: The transaction was rejected by the card company or by fraud.', 'woocommerce-iopay'));
+                case 'failed' :
+                    $order->update_status('failed', __('Iopay: The transaction was rejected by the card company or by fraud.', 'woocommerce-iopay'));
 
-                $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
-                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
+                    $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
+                    $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
 
-                $this->send_email(
-                        sprintf(esc_html__('The transaction for order %s was rejected by the card company or by fraud', 'woocommerce-iopay'), $order->get_order_number()), esc_html__('Transaction failed', 'woocommerce-iopay'), sprintf(esc_html__('Order %1$s has been marked as failed, because the transaction was rejected by the card company or by fraud, for more details, see %2$s.', 'woocommerce-iopay'), $order->get_order_number(), $transaction_url)
-                );
+                    $this->send_email(
+                            sprintf(esc_html__('The transaction for order %s was rejected by the card company or by fraud', 'woocommerce-iopay'), $order->get_order_number()), esc_html__('Transaction failed', 'woocommerce-iopay'), sprintf(esc_html__('Order %1$s has been marked as failed, because the transaction was rejected by the card company or by fraud, for more details, see %2$s.', 'woocommerce-iopay'), $order->get_order_number(), $transaction_url)
+                    );
 
-                break;
-            case 'refunded' :
-                $order->update_status('refunded', __('Iopay: The transaction was refunded/canceled.', 'woocommerce-iopay'));
+                    break;
+                case 'refunded' :
+                    $order->update_status('refunded', __('Iopay: The transaction was refunded/canceled.', 'woocommerce-iopay'));
 
-                $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
-                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
+                    $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
+                    $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
 
-                $this->send_email(
-                        sprintf(esc_html__('The transaction for order %s refunded', 'woocommerce-iopay'), $order->get_order_number()), esc_html__('Transaction refunded', 'woocommerce-iopay'), sprintf(esc_html__('Order %1$s has been marked as refunded by Iopay, for more details, see %2$s.', 'woocommerce-iopay'), $order->get_order_number(), $transaction_url)
-                );
+                    $this->send_email(
+                            sprintf(esc_html__('The transaction for order %s refunded', 'woocommerce-iopay'), $order->get_order_number()), esc_html__('Transaction refunded', 'woocommerce-iopay'), sprintf(esc_html__('Order %1$s has been marked as refunded by Iopay, for more details, see %2$s.', 'woocommerce-iopay'), $order->get_order_number(), $transaction_url)
+                    );
 
-                break;
-           
+                    break;
 
-            default :
-                break;
-        }
+
+                default :
+                    break;
+            }
     }
     
-    
-
     public function iopay_scripts() {
-
         wp_enqueue_script('iopay-main', plugins_url('assets/js/main.js', plugin_dir_path(__FILE__)), array('jquery'), date('is'), true);
     }
 
