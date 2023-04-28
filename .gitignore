@@ -1,0 +1,4 @@
+.vscode/settings.json
+.devcontainer/devcontainer.json
+vendor
+.phan/stubs

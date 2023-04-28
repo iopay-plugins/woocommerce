@@ -84,9 +84,3 @@ Para produtos baixáveis a configuração padrão do WooCommerce é permitir o a
 Não é obrigatório caso você não utilize antifraude.
 
 É possível remover os campos de endereço, empresa e telefone, mantendo apenas nome, sobrenome e e-mail utilizando o plugin [WooCommerce Digital Goods Checkout](https://wordpress.org/plugins/wc-digital-goods-checkout/), mais lembre-se esses campos sào obrigatórios quando seu plano tiver antifraude incluido.
-
-== Changelog ==
-
-= 1.0.0 =
-
-* Versão incial do plugin. 21/09/2022
