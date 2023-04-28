@@ -227,33 +227,45 @@ class WC_Iopay_API {
      * @return mixed
      */
     public function getIOPayAuthorization() {
-        $settings = $this->gateway->settings;
-        $credentials = array(
-            'io_seller_id' => $settings['api_key'],
-            'email' => $settings['email_auth'],
-            'secret' => utf8_encode($settings['encryption_key']),
-        );
-        $ch = curl_init();
-        $uri = $this->get_api_url() . 'auth/login';
-        curl_setopt($ch, \CURLOPT_URL, $uri);
-        curl_setopt($ch, \CURLOPT_POST, 1);
-        curl_setopt($ch, \CURLOPT_PORT, 443);
-        curl_setopt($ch, \CURLOPT_POSTFIELDS, json_encode($credentials));
-        curl_setopt($ch, \CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
-        curl_setopt($ch, \CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec($ch);
-        curl_close($ch);
-        $auth = json_decode($server_output);
-        $token = $auth->access_token;
-        if ('' == $token || null == $token) {
-            return 'Unauthorized';
-        }
+        try {
+            $settings = $this->gateway->settings;
+            $credentials = array(
+                'io_seller_id' => $settings['api_key'],
+                'email' => $settings['email_auth'],
+                'secret' => $settings['encryption_key'],
+            );
 
-        if (isset($auth->error)) {
-            return $auth->error;
-        }
+            $uri = $this->get_api_url() . 'auth/login';
 
-        return $token;
+            $result = wp_remote_post($uri, array(
+                'headers' => array('Content-Type' => 'application/json'),
+                'body' => json_encode($credentials),
+            ));
+
+            $auth = json_decode(wp_remote_retrieve_body($result));
+
+            if (is_wp_error($result)) {
+                throw new Exception('Request failed or invalid', 500);
+            }
+
+            $token = $auth->access_token;
+            if ('' == $token || null == $token) {
+                return 'Unauthorized';
+            }
+
+            if (isset($auth->error)) {
+                return $auth->error;
+            }
+
+            return $token;
+        } catch (Exception $e) {
+            // TODO add better logging
+            /* if(is_wp_error($result)) {
+                $this->gateway->log->log('error', $e->getMessage() . \PHP_EOL . var_export($result->get_error_messages(), true), array('source' => $this->gateway->id));
+            } */
+
+            return $e->getMessage();
+        }
     }
 
     /**
@@ -757,7 +769,6 @@ class WC_Iopay_API {
      * @return array redirect data
      */
     public function process_regular_payment($order_id) {
-
         $order = wc_get_order($order_id);
         $data = $this->generate_transaction_data($order);
         $transaction = $this->do_transaction($order, $data);
@@ -987,29 +998,52 @@ class WC_Iopay_API {
     }
 
     private function iopayRequest($url, $data, $method = 'POST') {
-        header('Content-Type: application/json');
-        $token = $this->getIOPayAuthorization();
-        $ch = curl_init($url);
-        $post = json_encode($data);
-        $authorization = 'Authorization: Bearer ' . $token;
+        try {
+            $token = $this->getIOPayAuthorization();
 
-        curl_setopt($ch, \CURLOPT_HTTPHEADER, array('Content-Type: application/json', $authorization)); // Inject the token into the header
-        curl_setopt($ch, \CURLOPT_RETURNTRANSFER, true);
+            $header = array(
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type' => 'application/json',
+            );
 
-        if ('POST' == $method) {
-            curl_setopt($ch, \CURLOPT_POST, 1); // Specify the request method as POST
-        } elseif ('GET' == $method) {
-            curl_setopt($ch, \CURLOPT_CUSTOMREQUEST, 'GET'); // Specify the request method as get
+            $post = json_encode($data);
+
+            switch ($method) {
+                case 'POST':
+                    $result = wp_remote_post($url, array(
+                        'headers' => $header,
+                        'body' => $post,
+                    ));
+
+                    break;
+
+                case 'GET':
+                    $result = wp_remote_get($url, array(
+                        'headers' => $header,
+                    ));
+
+                    break;
+
+                default:
+                    throw new Exception('Method not allowed', 404);
+
+                    break;
+            }
+
+            if (is_wp_error($result)) {
+                throw new Exception('Request failed or invalid', 500);
+            }
+
+            $data = wp_remote_retrieve_body($result);
+            $data = json_decode($data);
+
+            if ($data->success) {
+                return (array) $data->success;
+            }
+
+            return $data;
+        } catch (Exception $e) {
+            return $e->getMessage();
         }
-
-        curl_setopt($ch, \CURLOPT_POSTFIELDS, $post);
-        $result = curl_exec($ch);
-        curl_close($ch);
-        $dados = json_decode($result);
-        if ($dados->success) {
-            return (array) $dados->success;
-        }
-
-        return $dados;
     }
 }
