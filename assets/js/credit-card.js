@@ -1,8 +1,8 @@
 /* global wcIopayParams, IoPay */
 (function ($) {
 
-	'use strict';
-    $( document.body ).on( 'click', '.copy-qr-code', function () {
+    'use strict';
+    $(document.body).on('click', '.copy-qr-code', function () {
         /* Get the text field */
         var tempInput = document.createElement("input");
         var copyText = document.getElementById("pixQrCodeInput");
@@ -18,34 +18,34 @@
 
     function checkPixPayment() {
         var interval = 5000;
-        if( typeof window.wc_iopay_pix_payment_geteway !== 'undefined' )
+        if (typeof window.wc_iopay_pix_payment_geteway !== 'undefined')
             interval = window.wc_iopay_pix_payment_geteway.checkInterval;
 
         var checkInt = setInterval(function () {
-            $.get( woocommerce_params.ajax_url, {
+            $.get(woocommerce_params.ajax_url, {
                 'action': 'wc_iopay_pix_payment_check',
                 'key': $('input[name=wc_iopay_pix_order_key]').val()
-            } ).done( function(data) {
-                if( data.paid == true ){
-                    
-                    
+            }).done(function (data) {
+                if (data.paid == true) {
+
+
                     $("#successPixPaymentBox").css("display", "block");
                     $("#watingPixPaymentBox").css("display", "none");
-                  
+
                     clearInterval(checkInt);
-                    
-                    
-                    $('#watingPixPaymentBox').fadeOut( function() {
+
+
+                    $('#watingPixPaymentBox').fadeOut(function () {
                         $('#successPixPaymentBox').fadeIn();
                     });
                     return;
                 }
             });
         }, interval);
-    }   
-	
-    if( !$('#successPixPaymentBox').is(':visible') )
-    checkPixPayment();
+    }
+
+    if (!$('#successPixPaymentBox').is(':visible'))
+        checkPixPayment();
 
 
 
@@ -81,32 +81,32 @@
         $('body').on('click', '#place_order', function (event) {
             event.preventDefault();
             if (!$('#payment_method_iopay-credit-card').is(':checked')) {
-                
-              
-                
-                 var form = $('form.checkout, form#order_review'),
-                        errors = null,
-                        creditCardForm = $('#iopay-credit-cart-form', form),
-                        errorHtml = '';
+
+
+
+                var form = $('form.checkout, form#order_review'),
+                    errors = null,
+                    creditCardForm = $('#iopay-credit-cart-form', form),
+                    errorHtml = '';
                 // Lock the checkout form.
                 form.addClass('processing');
-                
+
                 form.removeClass('processing');
-                
-                 form.submit();
-                
+
+                form.submit();
+
                 return true;
-                
+
             }
 
 
 
-            $.post(wcIopayParams.url_iopay_auth, {secret: wcIopayParams.secret, email: wcIopayParams.email, io_seller_id: wcIopayParams.io_seller_id}).done(function (response) {
+            $.post(wcIopayParams.url_iopay_auth, { secret: wcIopayParams.secret, email: wcIopayParams.email, io_seller_id: wcIopayParams.io_seller_id }).done(function (response) {
 
-  var form = $('form.checkout, form#order_review'),
-                        errors = null,
-                        creditCardForm = $('#iopay-credit-cart-form', form),
-                        errorHtml = '';
+                var form = $('form.checkout, form#order_review'),
+                    errors = null,
+                    creditCardForm = $('#iopay-credit-cart-form', form),
+                    errorHtml = '';
 
 
                 var token = response.access_token;

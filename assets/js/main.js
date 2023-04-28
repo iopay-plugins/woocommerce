@@ -3,12 +3,9 @@
     'use strict';
 
     $(function () {
-        
-        
-        
-//        $('#woocommerce_iopay-credit-card_interest_rate_installment_2').hide();
-//        $('#woocommerce_iopay-credit-card_interest_rate_installment_2').hide();
-       
+        //        $('#woocommerce_iopay-credit-card_interest_rate_installment_2').hide();
+        //        $('#woocommerce_iopay-credit-card_interest_rate_installment_2').hide();
+
 
         $('body').on('click', '#copy_link_iopay', function () {
 
@@ -37,8 +34,6 @@
             var expiration_date = $('#woocommerce_iopay-banking-ticket_expiration_date').val();
             var late_fee_value = $('#woocommerce_iopay-banking-ticket_late_fee_value').val();
             var interest_rate_value = $('#woocommerce_iopay-banking-ticket_interest_rate_value').val();
-            
-      
 
             if (expiration_date > 100) {
                 $('#woocommerce_iopay-banking-ticket_expiration_date').val(100);

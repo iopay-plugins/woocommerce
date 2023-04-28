@@ -1,11 +1,9 @@
 <?php
 
 /**
- * Iopay Credit Card gateway
- *
- * @package WooCommerce_Iopay/Gateway
+ * Iopay Credit Card gateway.
  */
-if (!defined('ABSPATH')) {
+if ( ! defined('ABSPATH')) {
     exit;
 }
 
@@ -15,12 +13,11 @@ if (!defined('ABSPATH')) {
  * @extends WC_Payment_Gateway
  */
 class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
-
     /**
      * Constructor for the gateway.
+     *
+     * @since 1.0.0
      */
-    protected $data_rate = array();
-
     public function __construct() {
         $this->id = 'iopay-credit-card';
 
@@ -28,7 +25,6 @@ class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
         $this->has_fields = true;
         $this->method_title = __('Iopay - Credit Card', 'woocommerce-iopay');
         $this->method_description = __('Accept credit card payments using Iopay.', 'woocommerce-iopay');
-     
 
         // Load the settings.
         $this->init_settings();
@@ -47,15 +43,11 @@ class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
         $this->debug = $this->get_option('debug');
         $this->antifraude = $this->get_option('antifraude');
 
-
-        for ($installment = 1; $installment <= 12; $installment++) {
-
+        for ($installment = 1; $installment <= 12; ++$installment) {
             $destino = 'interest_rate_installment_' . $installment;
-            $$destino = $destino;
+            ${$destino} = $destino;
 
-
-            $this->$destino = $this->get_option('interest_rate_installment_' . $installment, '0');
-
+            $this->{$destino} = $this->get_option('interest_rate_installment_' . $installment, '0');
 
             $data_rate['interest_rate_installment_' . $installment] = array(
                 'title' => __('Juros parcela ' . $installment, 'woocommerce-iopay'),
@@ -68,8 +60,6 @@ class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
 
         // Load the form fields.
         $this->init_form_fields();
-
-
 
         // Active logs.
         if ('yes' === $this->debug) {
@@ -91,7 +81,7 @@ class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
      * Admin page.
      */
     public function admin_options() {
-        include dirname(__FILE__) . '/admin/views/html-admin-page.php';
+        include __DIR__ . '/admin/views/html-admin-page.php';
     }
 
     /**
@@ -100,7 +90,7 @@ class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
      * @return bool
      */
     public function is_available() {
-        return parent::is_available() && !empty($this->api_key) && !empty($this->encryption_key) && $this->api->using_supported_currency();
+        return parent::is_available() && ! empty($this->api_key) && ! empty($this->encryption_key) && $this->api->using_supported_currency();
     }
 
     /**
@@ -269,7 +259,7 @@ class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
                 'title' => __('Chave Publica Antifraude', 'woocommerce-iopay'),
                 'type' => 'text',
                 'description' => __('Se o seu plano possui antifraude coloque a sua chave publica aqui.', 'woocommerce-iopay'),
-                'desc_tip' => false
+                'desc_tip' => false,
             ),
             'testing' => array(
                 'title' => __('Gateway Testing', 'woocommerce-iopay'),
@@ -290,41 +280,41 @@ class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
      * Checkout scripts.
      */
     public function checkout_scripts() {
-
         if (is_checkout()) {
-            
-        
-
             $customer = array();
             wp_enqueue_script('iopay-credit-card', plugins_url('assets/js/credit-card.js', plugin_dir_path(__FILE__)), array('jquery'), date('is'), true);
-            $_SESSION["iopay_session"] = date('YmdHis') . sha1(rand(1, 30));
+            $_SESSION['iopay_session'] = date('YmdHis') . sha1(rand(1, 30));
             wp_localize_script(
-                 'iopay-credit-card', 'wcIopayParams', array(
-                'session_id' => $_SESSION["iopay_session"],
-                'url_iopay_auth' => $this->api->get_api_url().'v1/card/authentication',
-                'url_iopay_tokenize' => $this->api->get_api_url().'v1/card/tokenize/token',
-                'secret' => $this->encryption_key,
-                'io_seller_id' => $this->api_key,
-                'email' => $this->email_auth,
-                'interestRate' => $this->api->get_interest_rate(),
-                'freeInstallments' => $this->free_installments,
-                'postbackUrl' => WC()->api_request_url(get_class($this)),
-                'customerFields' => $customer,
-                'checkoutPayPage' => !empty($customer),
-                'uiColor' => apply_filters('wc_iopay_checkout_ui_color', '#1a6ee1'),
-                'register_refused_order' => $this->register_refused_order,
-                    )
+                'iopay-credit-card',
+                'wcIopayParams',
+                array(
+                    'session_id' => $_SESSION['iopay_session'],
+                    'url_iopay_auth' => $this->api->get_api_url() . 'v1/card/authentication',
+                    'url_iopay_tokenize' => $this->api->get_api_url() . 'v1/card/tokenize/token',
+                    'secret' => $this->encryption_key,
+                    'io_seller_id' => $this->api_key,
+                    'email' => $this->email_auth,
+                    'interestRate' => $this->api->get_interest_rate(),
+                    'freeInstallments' => $this->free_installments,
+                    'postbackUrl' => WC()->api_request_url(get_class($this)),
+                    'customerFields' => $customer,
+                    'checkoutPayPage' => ! empty($customer),
+                    'uiColor' => apply_filters('wc_iopay_checkout_ui_color', '#1a6ee1'),
+                    'register_refused_order' => $this->register_refused_order,
+                )
             );
 
             if ($this->get_option('antifraude')) {
                 wp_enqueue_script('iopay-antifraude', plugins_url('assets/js/checkout_antifraude.js', plugin_dir_path(__FILE__)), array('jquery'), date('is'), true);
                 wp_localize_script(
-                        'iopay-antifraude', 'wcIopayParams2', array(
-                    'public_key' => $this->get_option('antifraude'),
-                    'plan' => 'with_anti_fraud',
-                    'session_id' => $_SESSION["iopay_session"],
-                    'encryptionKey' => $this->encryption_key
-                        )
+                    'iopay-antifraude',
+                    'wcIopayParams2',
+                    array(
+                        'public_key' => $this->get_option('antifraude'),
+                        'plan' => 'with_anti_fraud',
+                        'session_id' => $_SESSION['iopay_session'],
+                        'encryptionKey' => $this->encryption_key,
+                    )
                 );
             }
         }
@@ -340,47 +330,49 @@ class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
         $cart_total = $this->get_order_total();
         $installments = $this->api->get_installments($cart_total);
         wc_get_template(
-             'credit-card/payment-form.php', array(
-            'cart_total' => $cart_total,
-            'max_installment' => $this->max_installment,
-            'smallest_installment' => $this->api->get_smallest_installment(),
-            'installments' => $installments,
-                ), 'woocommerce/iopay/', WC_Iopay::get_templates_path()
+            'credit-card/payment-form.php',
+            array(
+                'cart_total' => $cart_total,
+                'max_installment' => $this->max_installment,
+                'smallest_installment' => $this->api->get_smallest_installment(),
+                'installments' => $installments,
+            ),
+            'woocommerce/iopay/',
+            WC_Iopay::get_templates_path()
         );
     }
 
     /**
      * Process the payment.
      *
-     * @param int $order_id Order ID.
+     * @param int $order_id order ID
      *
-     * @return array Redirect data.
+     * @return array redirect data
      */
     public function process_payment($order_id) {
         return $this->api->process_regular_payment($order_id);
     }
 
-    
-
     /**
      * Thank You page message.
      *
-     * @param int $order_id Order ID.
+     * @param int $order_id order ID
      */
     public function thankyou_page($order_id) {
         $order = wc_get_order($order_id);
         $data = get_post_meta($order_id, 'data_payment_iopay', true);
         $data_success = get_post_meta($order_id, 'data_success_iopay', true);
 
-      
-        
         if (in_array($order->get_status(), array('processing', 'on-hold'), true)) {
             wc_get_template(
-                    'credit-card/payment-instructions.php', array(
-                'card_brand' => $data['card_brand'],
-                         'status' =>$data_success['status'],  
-                'installments' => $data['installments'],
-                    ), 'woocommerce/iopay/', WC_Iopay::get_templates_path()
+                'credit-card/payment-instructions.php',
+                array(
+                    'card_brand' => $data['card_brand'],
+                    'status' => $data_success['status'],
+                    'installments' => $data['installments'],
+                ),
+                'woocommerce/iopay/',
+                WC_Iopay::get_templates_path()
             );
         }
     }
@@ -388,36 +380,36 @@ class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
     /**
      * Add content to the WC emails.
      *
-     * @param  object $order         Order object.
-     * @param  bool   $sent_to_admin Send to admin.
-     * @param  bool   $plain_text    Plain text or HTML.
+     * @param WC_Order $order         order object
+     * @param bool     $sent_to_admin send to admin
+     * @param bool     $plain_text    plain text or HTML
      *
-     * @return string                Payment instructions.
+     * @return string payment instructions
      */
     public function email_instructions($order, $sent_to_admin, $plain_text = false) {
-        if ($sent_to_admin || !in_array($order->get_status(), array('processing', 'on-hold'), true) || $this->id !== $order->payment_method) {
+        if ($sent_to_admin || ! in_array($order->get_status(), array('processing', 'on-hold'), true) || $this->id !== $order->payment_method) {
             return;
         }
 
-       $data = get_post_meta($order_id, 'data_payment_iopay', true);
+        $data = get_post_meta($order->id, 'data_payment_iopay', true);
 
         if (isset($data['installments'])) {
             $email_type = $plain_text ? 'plain' : 'html';
 
             wc_get_template(
-                    'credit-card/emails/' . $email_type . '-instructions.php', array(
-                'card_brand' => $data['card_brand'],
-                'installments' => $data['installments'],
-                    ), 'woocommerce/iopay/', WC_Iopay::get_templates_path()
+                'credit-card/emails/' . $email_type . '-instructions.php',
+                array(
+                    'card_brand' => $data['card_brand'],
+                    'installments' => $data['installments'],
+                ),
+                'woocommerce/iopay/',
+                WC_Iopay::get_templates_path()
             );
         }
     }
 
-    /**
-     * IPN handler.
-     */
+    // IPN handler.
     public function ipn_handler() {
         $this->api->ipn_handler();
     }
-
 }

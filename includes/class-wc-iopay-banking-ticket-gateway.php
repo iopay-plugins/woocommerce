@@ -1,11 +1,9 @@
 <?php
 
 /**
- * Iopay Banking Ticket gateway
- *
- * @package WooCommerce_Iopay/Gateway
+ * Iopay Banking Ticket gateway.
  */
-if (!defined('ABSPATH')) {
+if ( ! defined('ABSPATH')) {
     exit;
 }
 
@@ -15,12 +13,12 @@ if (!defined('ABSPATH')) {
  * @extends WC_Payment_Gateway
  */
 class WC_Iopay_Banking_Ticket_Gateway extends WC_Payment_Gateway {
-
     /**
      * Constructor for the gateway.
+     *
+     * @since 1.0.0
      */
     public function __construct() {
-
         $this->id = 'iopay-banking-ticket';
         $this->icon = apply_filters('wc_iopay_banking_ticket_icon', false);
         $this->has_fields = true;
@@ -46,7 +44,6 @@ class WC_Iopay_Banking_Ticket_Gateway extends WC_Payment_Gateway {
         $this->late_fee_value = $this->get_option('late_fee_mode');
         $this->expiration_date = $this->get_option('expiration_date');
 
-
         // Active logs.
         if ('yes' === $this->debug) {
             $this->log = new WC_Logger();
@@ -66,7 +63,7 @@ class WC_Iopay_Banking_Ticket_Gateway extends WC_Payment_Gateway {
      * Admin page.
      */
     public function admin_options() {
-        include dirname(__FILE__) . '/admin/views/html-admin-page.php';
+        include __DIR__ . '/admin/views/html-admin-page.php';
     }
 
     /**
@@ -75,7 +72,7 @@ class WC_Iopay_Banking_Ticket_Gateway extends WC_Payment_Gateway {
      * @return bool
      */
     public function is_available() {
-        return parent::is_available() && !empty($this->api_key) && !empty($this->encryption_key) && $this->api->using_supported_currency();
+        return parent::is_available() && ! empty($this->api_key) && ! empty($this->encryption_key) && $this->api->using_supported_currency();
     }
 
     /**
@@ -135,8 +132,7 @@ class WC_Iopay_Banking_Ticket_Gateway extends WC_Payment_Gateway {
                 'description' => __('O prazo mínimo de vencimento é de 1 dia e máximo 180 dias a contar do dia posterior à emissão do boleto. Caso não seja informado o vencimento padrão é de 3 dias', 'woocommerce-iopay'),
                 'desc_tip' => true,
                 'default' => 3,
-                'custom_attributes'=>array('minlength'=>1, 'maxlength'=>100)
-                
+                'custom_attributes' => array('minlength' => 1, 'maxlength' => 100),
             ),
             'integration' => array(
                 'title' => __('Integration Settings', 'woocommerce-iopay'),
@@ -197,42 +193,43 @@ class WC_Iopay_Banking_Ticket_Gateway extends WC_Payment_Gateway {
         }
 
         wc_get_template(
-                'banking-ticket/checkout-instructions.php', array(), 'woocommerce/iopay/', WC_Iopay::get_templates_path()
+            'banking-ticket/checkout-instructions.php',
+            array(),
+            'woocommerce/iopay/',
+            WC_Iopay::get_templates_path()
         );
     }
 
     /**
      * Process the payment.
      *
-     * @param int $order_id Order ID.
+     * @param int $order_id order ID
      *
-     * @return array Redirect data.
+     * @return array redirect data
      */
     public function process_payment($order_id) {
-
-
         return $this->api->process_regular_payment($order_id);
     }
 
     /**
      * Thank You page message.
      *
-     * @param int $order_id Order ID.
+     * @param int $order_id order ID
      */
     public function thankyou_page($order_id) {
-
-
         $order = wc_get_order($order_id);
         $data = get_post_meta($order_id, 'data_payment_iopay', true);
-
 
         if (isset($data['url']) && in_array($order->get_status(), array('pending', 'processing', 'on-hold'), true)) {
             $template = 'payment';
 
             wc_get_template(
-                    'banking-ticket/' . $template . '-instructions.php', array(
-                'url' => $data['url'],
-                    ), 'woocommerce/iopay/', WC_Iopay::get_templates_path()
+                'banking-ticket/' . $template . '-instructions.php',
+                array(
+                    'url' => $data['url'],
+                ),
+                'woocommerce/iopay/',
+                WC_Iopay::get_templates_path()
             );
         }
     }
@@ -240,14 +237,14 @@ class WC_Iopay_Banking_Ticket_Gateway extends WC_Payment_Gateway {
     /**
      * Add content to the WC emails.
      *
-     * @param  object $order         Order object.
-     * @param  bool   $sent_to_admin Send to admin.
-     * @param  bool   $plain_text    Plain text or HTML.
+     * @param WC_Order $order         order object
+     * @param bool     $sent_to_admin send to admin
+     * @param bool     $plain_text    plain text or HTML
      *
-     * @return string                Payment instructions.
+     * @return string payment instructions
      */
     public function email_instructions($order, $sent_to_admin, $plain_text = false) {
-        if ($sent_to_admin || !in_array($order->get_status(), array('processing', 'on-hold'), true) || $this->id !== $order->payment_method) {
+        if ($sent_to_admin || ! in_array($order->get_status(), array('processing', 'on-hold'), true) || $this->id !== $order->payment_method) {
             return;
         }
 
@@ -257,18 +254,18 @@ class WC_Iopay_Banking_Ticket_Gateway extends WC_Payment_Gateway {
             $email_type = $plain_text ? 'plain' : 'html';
 
             wc_get_template(
-                    'banking-ticket/emails/' . $email_type . '-instructions.php', array(
-                'url' => $data['url'],
-                    ), 'woocommerce/iopay/', WC_Iopay::get_templates_path()
+                'banking-ticket/emails/' . $email_type . '-instructions.php',
+                array(
+                    'url' => $data['url'],
+                ),
+                'woocommerce/iopay/',
+                WC_Iopay::get_templates_path()
             );
         }
     }
 
-    /**
-     * IPN handler.
-     */
+    // IPN handler.
     public function ipn_handler() {
         $this->api->ipn_handler();
     }
-
 }

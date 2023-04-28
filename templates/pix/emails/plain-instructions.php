@@ -3,12 +3,11 @@
  * Credit Card - Plain email instructions.
  *
  * @author  Iopay
- * @package WooCommerce_Iopay/Templates
+ *
  * @version 2.0.0
  */
-
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 esc_html_e( 'Payment', 'woocommerce-iopay' );

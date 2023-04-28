@@ -1,11 +1,9 @@
 <?php
 
 /**
- * Iopay PIX gateway
- *
- * @package WooCommerce_Iopay/Gateway
+ * Iopay PIX gateway.
  */
-if (!defined('ABSPATH')) {
+if ( ! defined('ABSPATH')) {
     exit;
 }
 
@@ -15,9 +13,10 @@ if (!defined('ABSPATH')) {
  * @extends WC_Payment_Gateway
  */
 class WC_Iopay_Pix_Gateway extends WC_Payment_Gateway {
-
     /**
      * Constructor for the gateway.
+     *
+     * @since 1.0.0
      */
     public function __construct() {
         $this->id = 'iopay-pix';
@@ -25,7 +24,6 @@ class WC_Iopay_Pix_Gateway extends WC_Payment_Gateway {
         $this->has_fields = true;
         $this->method_title = __('Iopay - PIX', 'woocommerce-iopay');
         $this->method_description = __('Accept PIX payments using Iopay.', 'woocommerce-iopay');
-   
 
         // Load the form fields.
         $this->init_form_fields();
@@ -61,7 +59,7 @@ class WC_Iopay_Pix_Gateway extends WC_Payment_Gateway {
      * Admin page.
      */
     public function admin_options() {
-        include dirname(__FILE__) . '/admin/views/html-admin-page.php';
+        include __DIR__ . '/admin/views/html-admin-page.php';
     }
 
     /**
@@ -70,7 +68,7 @@ class WC_Iopay_Pix_Gateway extends WC_Payment_Gateway {
      * @return bool
      */
     public function is_available() {
-        return parent::is_available() && !empty($this->api_key) && !empty($this->encryption_key) && $this->api->using_supported_currency();
+        return parent::is_available() && ! empty($this->api_key) && ! empty($this->encryption_key) && $this->api->using_supported_currency();
     }
 
     /**
@@ -167,39 +165,40 @@ class WC_Iopay_Pix_Gateway extends WC_Payment_Gateway {
     /**
      * Process the payment.
      *
-     * @param int $order_id Order ID.
+     * @param int $order_id order ID
      *
-     * @return array Redirect data.
+     * @return array redirect data
      */
     public function process_payment($order_id) {
         return $this->api->process_regular_payment($order_id);
     }
 
-   
-
     /**
      * Thank You page message.
      *
-     * @param int $order_id Order ID.
+     * @param int $order_id order ID
      */
     public function thankyou_page($order_id) {
         $order = wc_get_order($order_id);
         $data = get_post_meta($order_id, 'data_payment_iopay', true);
         $data_success = get_post_meta($order_id, 'data_success_iopay', true);
         $id_transaction = $data['id'];
-       
+
         if (isset($id_transaction) && in_array($order->get_status(), array('pending', 'processing', 'on-hold'), true)) {
             wc_get_template(
-                    'pix/payment-instructions.php', array(
-                'order' => $order,
-                'status' =>$data_success['status'],      
-                'qrcode_link' => $data_success['qrcode_link'],
-                'pix_qrcode_url' => $data_success['pix_qrcode_url'],
-                'expected_on' => $data_success['expected_on'],
-                'id_transaction' => $id_transaction,
-                'expiration_date' => $data['expiration_date'],
-                'pix_link' => $data['pix_link']
-                    ), 'woocommerce/iopay/', WC_Iopay::get_templates_path()
+                'pix/payment-instructions.php',
+                array(
+                    'order' => $order,
+                    'status' => $data_success['status'],
+                    'qrcode_link' => $data_success['qrcode_link'],
+                    'pix_qrcode_url' => $data_success['pix_qrcode_url'],
+                    'expected_on' => $data_success['expected_on'],
+                    'id_transaction' => $id_transaction,
+                    'expiration_date' => $data['expiration_date'],
+                    'pix_link' => $data['pix_link'],
+                ),
+                'woocommerce/iopay/',
+                WC_Iopay::get_templates_path()
             );
         }
     }
@@ -207,38 +206,38 @@ class WC_Iopay_Pix_Gateway extends WC_Payment_Gateway {
     /**
      * Add content to the WC emails.
      *
-     * @param  object $order         Order object.
-     * @param  bool   $sent_to_admin Send to admin.
-     * @param  bool   $plain_text    Plain text or HTML.
+     * @param WC_Order $order         order object
+     * @param bool     $sent_to_admin send to admin
+     * @param bool     $plain_text    plain text or HTML
      *
-     * @return string                Payment instructions.
+     * @return string payment instructions
      */
     public function email_instructions($order, $sent_to_admin, $plain_text = false) {
-        if ($sent_to_admin || !in_array($order->get_status(), array('processing', 'on-hold'), true) || $this->id !== $order->payment_method) {
+        if ($sent_to_admin || ! in_array($order->get_status(), array('processing', 'on-hold'), true) || $this->id !== $order->payment_method) {
             return;
         }
 
-        $order = wc_get_order($order_id);
-        $data = get_post_meta($order_id, 'data_payment_iopay', true);
-        $data_success = get_post_meta($order_id, 'data_success_iopay', true);
+        $order = wc_get_order($order->id);
+        $data = get_post_meta($order->id, 'data_payment_iopay', true);
+        $data_success = get_post_meta($order->id, 'data_success_iopay', true);
         $id_transaction = $data['id'];
 
         if (isset($data['pix_qrcode_url'])) {
             $email_type = $plain_text ? 'plain' : 'html';
 
             wc_get_template(
-                    'pix/emails/' . $email_type . '-instructions.php', array(
-                     'url' => $data['pix_qrcode_url'],
-                    ), 'woocommerce/iopay/', WC_Iopay::get_templates_path()
+                'pix/emails/' . $email_type . '-instructions.php',
+                array(
+                    'url' => $data['pix_qrcode_url'],
+                ),
+                'woocommerce/iopay/',
+                WC_Iopay::get_templates_path()
             );
         }
     }
 
-    /**
-     * IPN handler.
-     */
+    // IPN handler.
     public function ipn_handler() {
         $this->api->ipn_handler();
     }
-
 }
