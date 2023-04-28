@@ -105,6 +105,7 @@ if ( ! class_exists('WC_Iopay')) {
             register_rest_route('iopay/v1', '/notification', array(
                 'methods' => 'POST',
                 'callback' => array($this, 'get_notification'),
+                'permission_callback' => __return_empty_string(),
             ));
         }
 
