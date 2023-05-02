@@ -74,7 +74,6 @@ class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
         add_action('wp_enqueue_scripts', array($this, 'checkout_scripts'));
         add_action('woocommerce_thankyou_' . $this->id, array($this, 'thankyou_page'));
         add_action('woocommerce_email_after_order_table', array($this, 'email_instructions'), 10, 3);
-        add_action('woocommerce_api_wc_iopay_credit_card_gateway', array($this, 'ipn_handler'));
     }
 
     /**
@@ -406,10 +405,5 @@ class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
                 WC_Iopay::get_templates_path()
             );
         }
-    }
-
-    // IPN handler.
-    public function ipn_handler() {
-        $this->api->ipn_handler();
     }
 }
