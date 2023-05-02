@@ -75,8 +75,8 @@ if ( ! class_exists('WC_Iopay')) {
 
             add_action('wp_ajax_wc_iopay_pix_payment_check', array($this, 'check_pix_payment'));
             add_action('wp_ajax_nopriv_wc_iopay_pix_payment_check', array($this, 'check_pix_payment'));
-//        add_action('wp_loaded', array($this, 'wp_loaded'));
-//        add_action('wc_pagarme_pix_payment_schedule', $this, 'check_expired_codes');
+            //        add_action('wp_loaded', array($this, 'wp_loaded'));
+            //        add_action('wc_pagarme_pix_payment_schedule', $this, 'check_expired_codes');
         }
 
         /**
@@ -445,21 +445,30 @@ if ( ! class_exists('WC_Iopay')) {
          * @param string $id    id Transactiom message
          */
         private function iopayRequestTransaction($token, $url, $id) {
-            header('Content-Type: application/json');
-            $ch = curl_init($url .= 'v1/transaction/get/' . $id);
-            $authorization = 'Authorization: Bearer ' . $token;
-            curl_setopt($ch, \CURLOPT_HTTPHEADER, array('Content-Type: application/json', $authorization)); // Inject the token into the header
-            curl_setopt($ch, \CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, \CURLOPT_CUSTOMREQUEST, 'GET'); // Specify the request method as get
-            $result = curl_exec($ch);
-            curl_close($ch);
-            $dados = json_decode($result);
+            try {
+                $headers = array(
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $token,
+                );
 
-            if ( ! isset($dados->success)) {
+                $result = wp_remote_get($url . 'v1/transaction/get/' . $id, array(
+                    'headers' => $headers,
+                ));
+
+                if (is_wp_error($result)) {
+                    throw new Exception('Error Processing Request', 500);
+                }
+
+                $data = json_decode(wp_remote_retrieve_body($result));
+
+                if ( ! isset($data->success)) {
+                    return false;
+                }
+
+                return $data->success;
+            } catch (Exception $e) {
                 return false;
             }
-
-            return $dados->success;
         }
     }
 
