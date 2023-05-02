@@ -10,9 +10,9 @@ if ( ! defined('ABSPATH')) {
 /**
  * WC_Iopay_Credit_Card_Gateway class.
  *
- * @extends WC_Payment_Gateway
+ * @extends Wc_Iopay_Paymethod_Gateway
  */
-class WC_Iopay_Credit_Card_Gateway extends WC_Payment_Gateway {
+class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
     /**
      * Constructor for the gateway.
      *

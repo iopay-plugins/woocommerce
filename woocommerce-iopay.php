@@ -362,6 +362,8 @@ if ( ! class_exists('WC_Iopay')) {
          * Includes.
          */
         private function includes() {
+            include_once __DIR__ . '/includes/class-wc-iopay-paymethod.php';
+
             include_once __DIR__ . '/includes/class-wc-iopay-api.php';
 
             include_once __DIR__ . '/includes/class-wc-iopay-my-account.php';

@@ -19,7 +19,7 @@ class WC_Iopay_API {
     /**
      * Gateway class.
      *
-     * @var WC_Payment_Gateway
+     * @var Wc_Iopay_Paymethod_Gateway
      */
     protected $gateway;
 
@@ -72,15 +72,6 @@ class WC_Iopay_API {
         }
 
         return $this->api_url;
-    }
-
-    /**
-     * Get API URL.
-     *
-     * @return string
-     */
-    public function get_api_sandbox_url() {
-        return $this->api_sandbox_url;
     }
 
     /**

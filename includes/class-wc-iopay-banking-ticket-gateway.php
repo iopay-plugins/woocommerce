@@ -10,9 +10,9 @@ if ( ! defined('ABSPATH')) {
 /**
  * WC_Iopay_Banking_Ticket_Gateway class.
  *
- * @extends WC_Payment_Gateway
+ * @extends Wc_Iopay_Paymethod_Gateway
  */
-class WC_Iopay_Banking_Ticket_Gateway extends WC_Payment_Gateway {
+class WC_Iopay_Banking_Ticket_Gateway extends Wc_Iopay_Paymethod_Gateway {
     /**
      * Constructor for the gateway.
      *
@@ -40,7 +40,7 @@ class WC_Iopay_Banking_Ticket_Gateway extends WC_Payment_Gateway {
         $this->encryption_key = $this->get_option('encryption_key');
         $this->email_auth = $this->get_option('email_auth');
         $this->debug = $this->get_option('debug');
-        $this->interest_rate_value = $this->get_option('interest_rate_value');
+        $this->interest_rate = $this->get_option('interest_rate_value');
         $this->late_fee_value = $this->get_option('late_fee_mode');
         $this->expiration_date = $this->get_option('expiration_date');
 
