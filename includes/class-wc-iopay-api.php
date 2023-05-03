@@ -157,11 +157,6 @@ class WC_Iopay_API {
 
             return $token;
         } catch (Exception $e) {
-            // TODO add better logging
-            /* if(is_wp_error($result)) {
-                $this->gateway->log->log('error', $e->getMessage() . \PHP_EOL . var_export($result->get_error_messages(), true), array('source' => $this->gateway->id));
-            } */
-
             return $e->getMessage();
         }
     }
@@ -562,63 +557,6 @@ class WC_Iopay_API {
     }
 
     /**
-     * Generate checkout data.
-     *
-     * @param WC_Order $order order data
-     * @param string   $token checkout token
-     *
-     * @return array checkout data
-     */
-    public function generate_checkout_data($order, $token) {
-        $transaction = $this->get_transaction_data($order, $token);
-        $installments = $this->get_installments($order->get_total());
-
-        // Valid transaction.
-        if ( ! isset($transaction['amount'])) {
-            return array('error' => __('Invalid transaction data.', 'woocommerce-iopay'));
-        }
-
-        // Test if using more installments that allowed.
-        if ($this->gateway->max_installment < $transaction['installments'] || empty($installments[$transaction['installments']])) {
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'Payment made with more installments than allowed for order ' . $order->get_order_number());
-            }
-
-            return array('error' => __('Payment made with more installments than allowed.', 'woocommerce-iopay'));
-        }
-
-        $installment = $installments[$transaction['installments']];
-
-        // Test smallest installment amount.
-        if (1 !== intval($transaction['installments']) && $this->get_smallest_installment() > $installment['installment_amount']) {
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'Payment divided into a lower amount than permitted for order ' . $order->get_order_number());
-            }
-
-            return array('error' => __('Payment divided into a lower amount than permitted.', 'woocommerce-iopay'));
-        }
-
-        // Check the transaction amount.
-        if (intval($transaction['amount']) !== intval($installment['amount'])) {
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'Wrong payment amount total for order ' . $order->get_order_number());
-            }
-
-            return array('error' => __('Wrong payment amount total.', 'woocommerce-iopay'));
-        }
-
-        $data = array(
-            'api_key' => $this->gateway->api_key,
-            'amount' => $transaction['amount'],
-            'metadata' => array(
-                'order_number' => $order->get_order_number(),
-            ),
-        );
-
-        return apply_filters('wc_iopay_checkout_data', $data);
-    }
-
-    /**
      * Do the transaction.
      *
      * @param WC_Order $order order data
@@ -632,21 +570,11 @@ class WC_Iopay_API {
             $this->gateway->log->add($this->gateway->id, 'Doing a transaction for order ' . $order->get_order_number() . '...');
         }
 
-        $response = $this->do_request($args);
+        $data = $this->do_request($args);
 
-        if (is_wp_error($response)) {
+        if ( ! empty($data['error'])) {
             if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'WP_Error in doing the transaction: ' . $response->error->message);
-            }
-
-            return array();
-        }
-
-        $data = $response;
-
-        if (isset($data->error)) {
-            if ('yes' === $this->gateway->debug) {
-                $this->gateway->log->add($this->gateway->id, 'Failed to make the transaction: ' . print_r($response, true));
+                $this->gateway->log->add($this->gateway->id, 'Failed to make the transaction: ' . print_r($data, true));
             }
 
             return $data;
@@ -671,20 +599,8 @@ class WC_Iopay_API {
         $data = $this->generate_transaction_data($order);
         $transaction = $this->do_transaction($order, $data);
 
-//            echo '<pre>';
-//            var_dump($transaction);
-//            exit;
-//
-
-        if (isset($transaction->status)) {
-            wc_add_notice($transaction->status, 'error');
-
-            return array(
-                'result' => 'fail',
-            );
-        }
-        if (isset($transaction->error)) {
-            wc_add_notice($transaction->error->message, 'error');
+        if ( ! empty($transaction['error'])) {
+            wc_add_notice($transaction['error']->message, 'error');
 
             return array(
                 'result' => 'fail',
@@ -905,6 +821,7 @@ class WC_Iopay_API {
             );
 
             $post = json_encode($data);
+            $result = 'none';
 
             switch ($method) {
                 case 'POST':
@@ -935,13 +852,17 @@ class WC_Iopay_API {
             $data = wp_remote_retrieve_body($result);
             $data = json_decode($data);
 
-            if ($data->success) {
+            if (isset($data->success)) {
                 return (array) $data->success;
             }
 
-            return $data;
+            return (array) $data;
         } catch (Exception $e) {
-            return $e->getMessage();
+            if ('yes' === $this->gateway->debug) {
+                $this->gateway->log->add($this->gateway->id, 'Failed to make the transaction: ' . $e->getMessage() . \PHP_EOL . ' Response: ' . var_export($result, true));
+            }
+
+            return array('error' => $e->getMessage());
         }
     }
 }
