@@ -180,7 +180,6 @@ if (false == $paid) {
             <polyline id="successAnimationCheck" stroke="#979797" stroke-width="2" points="23 34 34 43 47 27"
                 fill="transparent" />
         </svg>
-        <?php echo nl2br($thank_you_message); ?>
     </div>
     <div id="watingPixPaymentBox"
         style="display: <?php echo $paid ? 'none' : 'block'; ?>;">
