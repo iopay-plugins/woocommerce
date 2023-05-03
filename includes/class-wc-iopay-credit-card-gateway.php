@@ -368,7 +368,7 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                 array(
                     'card_brand' => $data['card_brand'],
                     'status' => $data_success['status'],
-                    'installments' => $data['installments'],
+                    'installments' => $data['installments'] ?? '1',
                 ),
                 'woocommerce/iopay/',
                 WC_Iopay::get_templates_path()
@@ -399,7 +399,7 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                 'credit-card/emails/' . $email_type . '-instructions.php',
                 array(
                     'card_brand' => $data['card_brand'],
-                    'installments' => $data['installments'],
+                    'installments' => $data['installments'] ?? '1',
                 ),
                 'woocommerce/iopay/',
                 WC_Iopay::get_templates_path()
