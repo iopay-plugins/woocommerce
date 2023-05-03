@@ -172,7 +172,7 @@ if ( ! class_exists('WC_Iopay')) {
 
             $plugin_links[] = '<a href="' . esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=' . $credit_card)) . '">' . __('Credit Card Settings', 'woocommerce-iopay') . '</a>';
 
-            $plugin_links[] = '<a href="' . esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=' . $pix)) . '">' . __('PIX COnfiguração', 'woocommerce-iopay') . '</a>';
+            $plugin_links[] = '<a href="' . esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=' . $pix)) . '">' . __('PIX Configuração', 'woocommerce-iopay') . '</a>';
 
             return array_merge($plugin_links, $links);
         }
