@@ -219,13 +219,15 @@ class WC_Iopay_Banking_Ticket_Gateway extends Wc_Iopay_Paymethod_Gateway {
         $order = wc_get_order($order_id);
         $data = get_post_meta($order_id, 'data_payment_iopay', true);
 
-        if (isset($data['url']) && in_array($order->get_status(), array('pending', 'processing', 'on-hold'), true)) {
+        if (isset($data['barcode'], $data['url']) && in_array($order->get_status(), array('pending', 'processing', 'on-hold'), true)) {
             $template = 'payment';
+            $barcode = $this->format_barcode($data['barcode']);
 
             wc_get_template(
                 'banking-ticket/' . $template . '-instructions.php',
                 array(
                     'url' => $data['url'],
+                    'barcode' => $barcode,
                 ),
                 'woocommerce/iopay/',
                 WC_Iopay::get_templates_path()
@@ -261,5 +263,23 @@ class WC_Iopay_Banking_Ticket_Gateway extends Wc_Iopay_Paymethod_Gateway {
                 WC_Iopay::get_templates_path()
             );
         }
+    }
+
+    /**
+     * Format string to a bank slip barcode.
+     *
+     * @since 1.1.0
+     *
+     * @param string $barcode
+     *
+     * @return string
+     */
+    private function format_barcode($barcode) {
+        $barcode = preg_replace('/\D/', '', $barcode);
+
+        return substr($barcode, 0, 5) . '.' . substr($barcode, 5, 5) . ' ' .
+        substr($barcode, 10, 5) . '.' . substr($barcode, 15, 6) . ' ' .
+        substr($barcode, 21, 5) . '.' . substr($barcode, 26, 6) . ' ' .
+        substr($barcode, 32, 1) . ' ' . substr($barcode, 33);
     }
 }
