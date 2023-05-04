@@ -1,62 +1,11 @@
 /* global wcIopayParams, IoPay */
 (function ($) {
 
-    'use strict';
-    $(document.body).on('click', '.copy-qr-code', function () {
-        /* Get the text field */
-        var tempInput = document.createElement("input");
-        var copyText = document.getElementById("pixQrCodeInput");
-        tempInput.value = copyText.value;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        tempInput.setSelectionRange(0, 99999); /* For mobile devices */
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-
-        $('.qrcode-copyed').show();
-    });
-
-    function checkPixPayment() {
-        var interval = 5000;
-        if (typeof window.wc_iopay_pix_payment_geteway !== 'undefined')
-            interval = window.wc_iopay_pix_payment_geteway.checkInterval;
-
-        var checkInt = setInterval(function () {
-            $.get(woocommerce_params.ajax_url, {
-                'action': 'wc_iopay_pix_payment_check',
-                'key': $('input[name=wc_iopay_pix_order_key]').val()
-            }).done(function (data) {
-                if (data.paid == true) {
-
-
-                    $("#successPixPaymentBox").css("display", "block");
-                    $("#watingPixPaymentBox").css("display", "none");
-
-                    clearInterval(checkInt);
-
-
-                    $('#watingPixPaymentBox').fadeOut(function () {
-                        $('#successPixPaymentBox').fadeIn();
-                    });
-                    return;
-                }
-            });
-        }, interval);
-    }
-
-    if (!$('#successPixPaymentBox').is(':visible'))
-        checkPixPayment();
-
-
-
-
     $(function () {
-
 
         $('body').on('click', '#iopay-card-number', function () {
 
             $("#iopay-card-number").mask("9999 9999 9999 9999");
-
 
         });
 
@@ -64,13 +13,11 @@
 
             $("#iopay-card-expiry").mask("99/99");
 
-
         });
 
         $('body').on('click', '#iopay-card-cvc', function () {
 
             $("#iopay-card-cvc").mask("9999");
-
 
         });
 
@@ -81,8 +28,6 @@
         $('body').on('click', '#place_order', function (event) {
             event.preventDefault();
             if (!$('#payment_method_iopay-credit-card').is(':checked')) {
-
-
 
                 var form = $('form.checkout, form#order_review'),
                     errors = null,
@@ -107,7 +52,6 @@
                     errors = null,
                     creditCardForm = $('#iopay-credit-cart-form', form),
                     errorHtml = '';
-
 
                 var token = response.access_token;
                 var url = wcIopayParams.url_iopay_tokenize;
@@ -160,7 +104,6 @@
                             var last4_digits = json.card.last4_digits;
 
 
-
                             // Add the hash input.
                             form.append($('<input name="session_id" type="hidden" />').val(wcIopayParams.session_id));
                             form.append($('<input name="card_id" type="hidden" />').val(card_id));
@@ -173,11 +116,7 @@
                             // Submit the form.
                             form.submit();
 
-
                         }
-
-
-
 
                     },
                     error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -191,15 +130,7 @@
                     contentType: 'application/x-www-form-urlencoded'
                 });
 
-
-
-
-
-
             });
-
-
-
 
         });
     });
