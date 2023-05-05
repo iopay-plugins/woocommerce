@@ -152,7 +152,7 @@ class WC_Iopay_Banking_Ticket_Gateway extends Wc_Iopay_Paymethod_Gateway {
             ),
             'api_key' => array(
                 'title' => __('Iopay API Key', 'woocommerce-iopay'),
-                'type' => 'text',
+                'type' => 'password',
                 'description' => sprintf(__('Please enter your Iopay API Key. This is needed to process the payment and notifications. Is possible get your API Key in %s.', 'woocommerce-iopay'), '<a href="https://minhaconta.iopay.com.br/login/">' . __('Iopay Dashboard > My Account page', 'woocommerce-iopay') . '</a>'),
                 'default' => '',
                 'custom_attributes' => array(
@@ -161,7 +161,7 @@ class WC_Iopay_Banking_Ticket_Gateway extends Wc_Iopay_Paymethod_Gateway {
             ),
             'encryption_key' => array(
                 'title' => __('Iopay Encryption Key', 'woocommerce-iopay'),
-                'type' => 'text',
+                'type' => 'password',
                 'description' => sprintf(__('Please enter your Iopay Encryption key. This is needed to process the payment. Is possible get your Encryption Key in %s.', 'woocommerce-iopay'), '<a href="https://minhaconta.iopay.com.br/login/">' . __('Iopay Dashboard > My Account page', 'woocommerce-iopay') . '</a>'),
                 'default' => '',
                 'custom_attributes' => array(
