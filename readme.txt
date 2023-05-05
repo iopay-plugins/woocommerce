@@ -2,8 +2,8 @@
 Contributors: Jeronimo Cardoso
 Tags: woocommerce, iopay, payment
 Requires at least: 4.0
-Tested up to: 1.0.0
-Stable tag: 1.0.0
+Tested up to: 6.2
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -86,6 +86,15 @@ Não é obrigatório caso você não utilize antifraude.
 É possível remover os campos de endereço, empresa e telefone, mantendo apenas nome, sobrenome e e-mail utilizando o plugin [WooCommerce Digital Goods Checkout](https://wordpress.org/plugins/wc-digital-goods-checkout/), mais lembre-se esses campos sào obrigatórios quando seu plano tiver antifraude incluido.
 
 == Changelog ==
+
+= 1.1.0 =
+* Correção de bug de cartão de crédito sem parcelas configuradas;
+* Retirar funções depreciadas do PHP;
+* Melhoria do sistema de tratamento de erros do PHP;
+* URL de notificações da área administrativa corrigida;
+* Corrigido bug de função de registro de rota de notificações;
+* Adição de código de barras na cobrança com boleto bancário;
+* Melhoria de funções de notificações via webhook.
 
 = 1.0.0 =
 
