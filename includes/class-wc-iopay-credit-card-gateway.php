@@ -283,16 +283,16 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
             $customer = array();
             wp_enqueue_script('iopay-credit-card', plugins_url('assets/js/credit-card.js', plugin_dir_path(__FILE__)), array('jquery'), date('is'), true);
             $_SESSION['iopay_session'] = date('YmdHis') . sha1(rand(1, 30));
+            $token = wp_hash(date('dmY') . 'iopay-auth');
+
             wp_localize_script(
                 'iopay-credit-card',
                 'wcIopayParams',
                 array(
                     'session_id' => $_SESSION['iopay_session'],
-                    'url_iopay_auth' => $this->api->get_api_url() . 'v1/card/authentication',
+                    'auth_key' => $token,
+                    'url_iopay_auth' => site_url() . '/wp-json/iopay/v1/auth',
                     'url_iopay_tokenize' => $this->api->get_api_url() . 'v1/card/tokenize/token',
-                    'secret' => $this->encryption_key,
-                    'io_seller_id' => $this->api_key,
-                    'email' => $this->email_auth,
                     'interestRate' => $this->api->get_interest_rate(),
                     'freeInstallments' => $this->free_installments,
                     'postbackUrl' => WC()->api_request_url(get_class($this)),

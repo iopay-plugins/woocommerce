@@ -120,9 +120,51 @@ class WC_Iopay_API {
     }
 
     /**
+     * Obtem o access_token para utilização de recursos de cartão da API IOPAY.
+     *
+     * @return string
+     */
+    public function getIOPayCardAuthorization() {
+        try {
+            $settings = $this->gateway->settings;
+            $credentials = array(
+                'io_seller_id' => $settings['api_key'],
+                'email' => $settings['email_auth'],
+                'secret' => $settings['encryption_key'],
+            );
+
+            $uri = $this->get_api_url() . 'v1/card/authentication';
+
+            $result = wp_remote_post($uri, array(
+                'headers' => array('Content-Type' => 'application/json'),
+                'body' => json_encode($credentials),
+            ));
+
+            $auth = json_decode(wp_remote_retrieve_body($result));
+
+            if (is_wp_error($result)) {
+                throw new Exception('Request failed or invalid', 500);
+            }
+
+            $token = $auth->access_token;
+            if ('' == $token || null == $token) {
+                return 'Unauthorized';
+            }
+
+            if (isset($auth->error)) {
+                return $auth->error;
+            }
+
+            return $token;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    /**
      * Obtem o access_token para utilização dos recursos da API IOPAY.
      *
-     * @return mixed
+     * @return string
      */
     public function getIOPayAuthorization() {
         try {

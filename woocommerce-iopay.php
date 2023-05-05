@@ -107,6 +107,12 @@ if ( ! class_exists('WC_Iopay')) {
                 'callback' => array($this, 'get_notification'),
                 'permission_callback' => __return_empty_string(),
             ));
+
+            register_rest_route('iopay/v1', '/auth', array(
+                'methods' => 'POST',
+                'callback' => array($this, 'get_authentication'),
+                'permission_callback' => __return_empty_string(),
+            ));
         }
 
         /**
@@ -255,6 +261,29 @@ if ( ! class_exists('WC_Iopay')) {
                 add_option('woocommerce_iopay_admin_notice_documentation_link', 'yes');
                 add_option('woocommerce_iopay_admin_notice_missing_brazilian_market', 'yes');
             }
+        }
+
+        /**
+         * Listen for script authentication.
+         *
+         * @since 1.1.0
+         *
+         * @return WP_REST_Response
+         */
+        public function get_authentication(WP_REST_Request $request) {
+            $params = $request->get_params();
+            $session_id = $params['session'] ?? '';
+            $auth_token = $params['auth'] ?? '';
+            $verify_token = wp_hash(date('dmY') . 'iopay-auth');
+
+            if ( ! empty($session_id) && ! empty($auth_token) && $auth_token === $verify_token) {
+                $wc_iopay_api = new WC_Iopay_API(new WC_Iopay_Credit_Card_Gateway());
+                $token = $wc_iopay_api->getIOPayCardAuthorization();
+
+                return new WP_REST_Response(array('token' => $token), 200);
+            }
+
+            return new WP_REST_Response(array('error' => 'Authentication not allowed'), 500);
         }
 
         /**

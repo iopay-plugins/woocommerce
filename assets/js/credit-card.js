@@ -46,14 +46,13 @@
 
 
 
-            $.post(wcIopayParams.url_iopay_auth, { secret: wcIopayParams.secret, email: wcIopayParams.email, io_seller_id: wcIopayParams.io_seller_id }).done(function (response) {
-
+            $.post(wcIopayParams.url_iopay_auth, { session: wcIopayParams.session_id, auth: wcIopayParams.auth_key }).done(function (response) {
                 var form = $('form.checkout, form#order_review'),
                     errors = null,
                     creditCardForm = $('#iopay-credit-cart-form', form),
                     errorHtml = '';
 
-                var token = response.access_token;
+                var token = response.token;
                 var url = wcIopayParams.url_iopay_tokenize;
 
                 // Set the Credit card data.
