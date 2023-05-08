@@ -18,7 +18,7 @@ jobs:
 
     # Add plugin files to a root directory
     - name: Make plugin root directory
-      run: "mkdir $PLUGIN_NAME && mv -t ./$PLUGIN_NAME ./admin ./includes ./languages ./public *.txt *.md *.php && ls -lah"
+      run: "mkdir $PLUGIN_NAME && mv -t ./$PLUGIN_NAME ./assets ./includes ./languages ./templates *.txt *.md *.php && ls -lah"
 
     # Compact plugin as .zip
     - name: Archive Release
