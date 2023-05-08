@@ -50,6 +50,7 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
 
         // Actions.
         add_action('wp_enqueue_scripts', array($this, 'checkout_scripts'));
+        add_action('wp_enqueue_scripts', array($this, 'checkout_styles'));
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
         add_action('woocommerce_thankyou_' . $this->id, array($this, 'thankyou_page'));
         add_action('woocommerce_email_after_order_table', array($this, 'email_instructions'), 10, 3);
@@ -153,8 +154,19 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
      * @since 1.1.0
      */
     public function checkout_scripts() {
-        if (is_checkout()) {
-            wp_enqueue_script('iopay-pix', plugins_url('assets/js/pix.js', plugin_dir_path(__FILE__)), array('jquery'), date('is'), true);
+        if (is_checkout() || is_add_payment_method_page() || is_order_received_page()) {
+            wp_enqueue_script('iopay-pix', plugins_url('assets/js/pix.js', plugin_dir_path(__FILE__)), array('jquery'), WC_Iopay::VERSION, true);
+        }
+    }
+
+    /**
+     * Define style load for frontend PIX.
+     *
+     * @since 1.1.1
+     */
+    public function checkout_styles() {
+        if (is_checkout() || is_add_payment_method_page() || is_order_received_page() || is_order_received_page()) {
+            wp_enqueue_style('iopay-pix-style', plugins_url('assets/css/pix.css', plugin_dir_path(__FILE__)), array(), WC_Iopay::VERSION);
         }
     }
 

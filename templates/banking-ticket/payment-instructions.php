@@ -29,31 +29,3 @@ if ( ! defined( 'ABSPATH' ) ) {
         <?php esc_html_e( 'After we receive the banking ticket payment confirmation, your order will be processed.', 'woocommerce-iopay' ); ?>
     </span>
 </div>
-
-<style>
-    #iopay-bank-slip-message{
-        display: flex;
-        flex-direction: column;
-    }
-    #iopay-bank-slip-btn {
-        display: flex;
-        justify-content: center;
-        padding: 15px 0px 0px 0px;
-    }
-    #iopay-redirection-link {
-        text-decoration: none;
-        padding: 0.5rem;
-        border: 1px solid #abb8c3;
-        border-radius: 4px;
-    }
-    #iopay-bank-slip-code {
-        display: flex;
-        justify-content: center;
-        padding: 8px 0px;
-        border-top: solid 1px #abb8c3;
-        border-bottom: solid 1px #abb8c3 ;
-    }
-    #iopay-user-instructions {
-        padding: 15px 0px 0px 0px; 
-    }
-</style>

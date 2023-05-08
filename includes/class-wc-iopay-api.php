@@ -58,7 +58,7 @@ class WC_Iopay_API {
      */
     public function __construct($gateway = null) {
         $this->gateway = $gateway;
-        add_action('admin_enqueue_scripts', array($this, 'iopay_scripts'));
+        add_action('wp_enqueue_scripts', array($this, 'iopay_scripts'));
     }
 
     /**
@@ -733,7 +733,9 @@ class WC_Iopay_API {
     }
 
     public function iopay_scripts() {
-        wp_enqueue_script('iopay-main', plugins_url('assets/js/main.js', plugin_dir_path(__FILE__)), array('jquery'), date('is'), true);
+        if (is_checkout() || is_add_payment_method_page() || is_order_received_page()) {
+            wp_enqueue_script('iopay-main', plugins_url('assets/js/main.js', plugin_dir_path(__FILE__)), array('jquery'), WC_Iopay::VERSION, true);
+        }
     }
 
     /**

@@ -72,6 +72,7 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
         // Actions.
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
         add_action('wp_enqueue_scripts', array($this, 'checkout_scripts'));
+        add_action('wp_enqueue_scripts', array($this, 'checkout_styles'));
         add_action('woocommerce_thankyou_' . $this->id, array($this, 'thankyou_page'));
         add_action('woocommerce_email_after_order_table', array($this, 'email_instructions'), 10, 3);
     }
@@ -279,9 +280,9 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
      * Checkout scripts.
      */
     public function checkout_scripts() {
-        if (is_checkout()) {
+        if (is_checkout() || is_add_payment_method_page() || is_order_received_page()) {
             $customer = array();
-            wp_enqueue_script('iopay-credit-card', plugins_url('assets/js/credit-card.js', plugin_dir_path(__FILE__)), array('jquery'), date('is'), true);
+            wp_enqueue_script('iopay-credit-card', plugins_url('assets/js/credit-card.js', plugin_dir_path(__FILE__)), array('jquery'), WC_Iopay::VERSION, true);
             $_SESSION['iopay_session'] = date('YmdHis') . sha1(rand(1, 30));
             $token = wp_hash(date('dmY') . 'iopay-auth');
 
@@ -304,7 +305,7 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
             );
 
             if ($this->get_option('antifraude')) {
-                wp_enqueue_script('iopay-antifraude', plugins_url('assets/js/checkout_antifraude.js', plugin_dir_path(__FILE__)), array('jquery'), date('is'), true);
+                wp_enqueue_script('iopay-antifraude', plugins_url('assets/js/checkout_antifraude.js', plugin_dir_path(__FILE__)), array('jquery'), WC_Iopay::VERSION, true);
                 wp_localize_script(
                     'iopay-antifraude',
                     'wcIopayParams2',
@@ -316,6 +317,17 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                     )
                 );
             }
+        }
+    }
+
+    /**
+     * Define style load for frontend Credit Card.
+     *
+     * @since 1.1.1
+     */
+    public function checkout_styles() {
+        if (is_checkout() || is_add_payment_method_page() || is_order_received_page() || is_order_received_page()) {
+            wp_enqueue_style('iopay-cc-style', plugins_url('assets/css/credit-card.css', plugin_dir_path(__FILE__)), array(), WC_Iopay::VERSION);
         }
     }
 
