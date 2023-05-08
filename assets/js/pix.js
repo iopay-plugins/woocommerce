@@ -17,6 +17,4 @@
         $('.qrcode-copyed').show();
     });
 
-    console.log('pix carregado!');
-
 }(jQuery));
