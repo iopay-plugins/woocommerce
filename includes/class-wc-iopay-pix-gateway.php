@@ -86,7 +86,7 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
             'sandbox' => array(
                 'title' => __('Sandbox Iopay', 'woocommerce-iopay'),
                 'type' => 'checkbox',
-                'label' => __('Ativar Sandbox Iopay', 'woocommerce-iopay'),
+                'label' => __('Activate Iopay Sandbox', 'woocommerce-iopay'),
                 'default' => 'no',
                 'desc_tip' => true),
             'title' => array(
@@ -109,12 +109,12 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
                 'description' => '',
             ),
             'integration2' => array(
-                'title' => __('Webhook - aviso de notificações', 'woocommerce-iopay'),
+                'title' => __('Webhook - Notifications warning', 'woocommerce-iopay'),
                 'type' => 'title',
-                'description' => sprintf(__('Por favor cadastre A URL de notificação <span style="font-size:18px; font-weight:bold">( <a href="#" id="copy_link_iopay"  >' . site_url() . '/wp-json/iopay/v1/notification</a>  )</span> em seu painel:  %s.', 'woocommerce-iopay'), '<a href="https://minhaconta.iopay.com.br/settings/online_payment">' . __('Iopay Dashboard > My Account page', 'woocommerce-iopay') . '</a>'),
+                'description' => sprintf(__('Please register the notification URL %s in your panel: %s.', 'woocommerce-iopay'), '<span style="font-size:18px; font-weight:bold">( <a href="#" id="copy_link_iopay"  >' . site_url() . '/wp-json/iopay/v1/notification</a>  )</span>', '<a href="https://minhaconta.iopay.com.br/settings/online_payment">' . __('Iopay Dashboard > My Account page', 'woocommerce-iopay') . '</a>'),
             ),
             'email_auth' => array(
-                'title' => __('E-mail Auth', 'woocommerce-iopay'),
+                'title' => __('Email Auth', 'woocommerce-iopay'),
                 'type' => 'email',
                 'description' => __('E-mail usando para autenticacao com a API.', 'woocommerce-iopay'),
                 'desc_tip' => true,

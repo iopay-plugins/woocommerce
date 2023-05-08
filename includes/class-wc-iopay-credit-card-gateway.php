@@ -50,7 +50,7 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
             $this->{$destino} = $this->get_option('interest_rate_installment_' . $installment, '0');
 
             $data_rate['interest_rate_installment_' . $installment] = array(
-                'title' => __('Juros parcela ' . $installment, 'woocommerce-iopay'),
+                'title' => __('Installment interest', 'woocommerce-iopay') . $installment,
                 'type' => 'text',
                 'default' => '0',
             );
@@ -107,7 +107,7 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
             'sandbox' => array(
                 'title' => __('Sandbox Iopay', 'woocommerce-iopay'),
                 'type' => 'checkbox',
-                'label' => __('Ativar Sandbox Iopay', 'woocommerce-iopay'),
+                'label' => __('Activate Iopay Sandbox', 'woocommerce-iopay'),
                 'default' => 'no',
                 'desc_tip' => true,
             ),
@@ -131,12 +131,12 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                 'description' => '',
             ),
             'integration2' => array(
-                'title' => __('Webhook - aviso de notificações', 'woocommerce-iopay'),
+                'title' => __('Webhook - Notifications warning', 'woocommerce-iopay'),
                 'type' => 'title',
-                'description' => sprintf(__('Por favor cadastre A URL de notificação <span style="font-size:18px; font-weight:bold">( <a href="#" id="copy_link_iopay"  >' . site_url() . '/wp-json/iopay/v1/notification</a>  )</span> em seu painel:  %s.', 'woocommerce-iopay'), '<a href="https://minhaconta.iopay.com.br/settings/online_payment">' . __('Iopay Dashboard > My Account page', 'woocommerce-iopay') . '</a>'),
+                'description' => sprintf(__('Please register the notification URL %s in your panel: %s.', 'woocommerce-iopay'), '<span style="font-size:18px; font-weight:bold">( <a href="#" id="copy_link_iopay"  >' . site_url() . '/wp-json/iopay/v1/notification</a>  )</span>', '<a href="https://minhaconta.iopay.com.br/settings/online_payment">' . __('Iopay Dashboard > My Account page', 'woocommerce-iopay') . '</a>'),
             ),
             'email_auth' => array(
-                'title' => __('E-mail Auth', 'woocommerce-iopay'),
+                'title' => __('Email Auth', 'woocommerce-iopay'),
                 'type' => 'email',
                 'description' => __('This email authentication.', 'woocommerce-iopay'),
                 'desc_tip' => true,
@@ -196,69 +196,69 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                 ),
             ),
             'interest_rate_installment_1' => array(
-                'title' => __('Juros parcela 1', 'woocommerce-iopay'),
+                'title' => __('Installment interest', 'woocommerce-iopay') . 1,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_2' => array(
-                'title' => __('Juros parcela 2', 'woocommerce-iopay'),
+                'title' => __('Installment interest', 'woocommerce-iopay') . 2,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_3' => array(
-                'title' => __('Juros parcela 3', 'woocommerce-iopay'),
+                'title' => __('Installment interest', 'woocommerce-iopay') . 3,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_4' => array(
-                'title' => __('Juros parcela 4', 'woocommerce-iopay'),
+                'title' => __('Installment interest', 'woocommerce-iopay') . 4,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_5' => array(
-                'title' => __('Juros parcela 5', 'woocommerce-iopay'),
+                'title' => __('Installment interest', 'woocommerce-iopay') . 5,
                 'desc_tip' => true,
                 'default' => '0',
             ),
             'interest_rate_installment_6' => array(
-                'title' => __('Juros parcela 6', 'woocommerce-iopay'),
+                'title' => __('Installment interest', 'woocommerce-iopay') . 6,
                 'desc_tip' => true,
                 'default' => '0',
             ),
             'interest_rate_installment_7' => array(
-                'title' => __('Juros parcela 7', 'woocommerce-iopay'),
+                'title' => __('Installment interest', 'woocommerce-iopay') . 7,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_8' => array(
-                'title' => __('Juros parcela 8', 'woocommerce-iopay'),
+                'title' => __('Installment interest', 'woocommerce-iopay') . 8,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_9' => array(
-                'title' => __('Juros parcela 9', 'woocommerce-iopay'),
+                'title' => __('Installment interest', 'woocommerce-iopay') . 9,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_10' => array(
-                'title' => __('Juros parcela 10', 'woocommerce-iopay'),
+                'title' => __('Installment interest', 'woocommerce-iopay') . 10,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_11' => array(
-                'title' => __('Juros parcela 11', 'woocommerce-iopay'),
+                'title' => __('Installment interest', 'woocommerce-iopay') . 11,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_12' => array(
-                'title' => __('Juros parcela 12', 'woocommerce-iopay'),
+                'title' => __('Installment interest', 'woocommerce-iopay') . 12,
                 'type' => 'text',
                 'default' => '0',
             ),
             'antifraude' => array(
-                'title' => __('Chave Publica Antifraude', 'woocommerce-iopay'),
+                'title' => __('Antifraud Public Key', 'woocommerce-iopay'),
                 'type' => 'password',
-                'description' => __('Se o seu plano possui antifraude coloque a sua chave publica aqui.', 'woocommerce-iopay'),
+                'description' => __('If your plan has anti-fraud, put your public key here.', 'woocommerce-iopay'),
                 'desc_tip' => false,
             ),
             'testing' => array(

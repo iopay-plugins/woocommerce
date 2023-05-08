@@ -585,3 +585,72 @@ msgstr "https://iopay/"
 msgctxt "no free installments"
 msgid "None"
 msgstr "Nenhum"
+
+msgid "PIX Settings"
+msgstr "PIX Configurações"
+
+msgid "Pay with PIX"
+msgstr "Pague com o PIX"
+
+msgid "Payment under review."
+msgstr "Pagamento em análise."
+
+msgid "Payment failed, please contact our call center, or try again later."
+msgstr "Pagamento falhou, entre em contato com nossa central de atendimento, ou tente novamente mais tarde."
+
+msgid "There was an error with your payment."
+msgstr "Ocorreu um erro com seu pagamento."
+
+msgid "Divergent payment"
+msgstr "Pagamento divergente"
+
+msgid "ID does not match"
+msgstr "ID não corresponde"
+
+msgid "Activate Iopay Sandbox"
+msgstr "Ativar Sandbox Iopay"
+
+msgid "Instructions"
+msgstr "Instruções"
+
+msgid "Daily interest rate %"
+msgstr "Taxa de juros diária %"
+
+msgid "Instructions your customer will see on the ticket."
+msgstr "Instruções que seu cliente verá no boleto."
+
+msgid "Daily interest for delay in percentage, not to exceed 3.3% per day. Note: use 0 to not charge interest."
+msgstr "Juros diarios por atraso em porcentagem, nao ultrapassar 3.3% ao dia. Nota: use 0 para nao cobrar juros."
+
+msgid "Fine for delay in %"
+msgstr "Multa por atraso em %"
+
+msgid "Fine for late payment in percentage, not exceeding 100% of the value of the bill. Note: use 0 to not charge a fine."
+msgstr "Multa por atraso em porcentagem, não ultrapassar 100% do valor do boleto. Nota: use 0 para não cobrar multa."
+
+msgid "Expiry days"
+msgstr "Dias de vencimento"
+
+msgid "The minimum maturity period is 1 day and the maximum 180 days from the day following the issuance of the bill. If not informed, the default expiration is 3 days."
+msgstr "O prazo mínimo de vencimento é de 1 dia e máximo 180 dias a contar do dia posterior à emissão do boleto. Caso não seja informado, o vencimento padrão é de 3 dias."
+
+msgid "Webhook - Notifications warning"
+msgstr "Webhook - aviso de notificações"
+
+msgid "Please register the notification URL %s in your panel: %s."
+msgstr "Por favor cadastre A URL de notificação %s em seu painel: %s."
+
+msgid "Email used for authentication with the API."
+msgstr "E-mail usado para autenticação com a API."
+
+msgid "Installment interest"
+msgstr "Juros parcela"
+
+msgid "Antifraud Public Key"
+msgstr "Chave Pública Antifraude"
+
+msgid "If your plan has anti-fraud, put your public key here."
+msgstr "Se o seu plano possui antifraude coloque a sua chave publica aqui."
+
+msgid "Enable Iopay PIX"
+msgstr "Ativar Iopay PIX"

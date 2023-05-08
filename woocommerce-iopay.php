@@ -178,7 +178,7 @@ if ( ! class_exists('WC_Iopay')) {
 
             $plugin_links[] = '<a href="' . esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=' . $credit_card)) . '">' . __('Credit Card Settings', 'woocommerce-iopay') . '</a>';
 
-            $plugin_links[] = '<a href="' . esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=' . $pix)) . '">' . __('PIX Configuração', 'woocommerce-iopay') . '</a>';
+            $plugin_links[] = '<a href="' . esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=' . $pix)) . '">' . __('PIX Settings', 'woocommerce-iopay') . '</a>';
 
             return array_merge($plugin_links, $links);
         }
@@ -351,11 +351,11 @@ if ( ! class_exists('WC_Iopay')) {
                             if ($id_retorno != $post_data['id']) {
                                 $log = new WC_Logger();
                                 $log->add('IOPAY-ERROR', json_encode($parameters));
-                                wp_die(esc_html__('ID nao corresponde', 'woocommerce-iopay'), '', array('response' => 402));
+                                wp_die(esc_html__('ID does not match', 'woocommerce-iopay'), '', array('response' => 402));
                             } elseif ($order->get_total() != $amount) {
                                 $log = new WC_Logger();
                                 $log->add('IOPAY-ERROR', json_encode($parameters));
-                                wp_die(esc_html__('Pagamento divergente', 'woocommerce-iopay'), '', array('response' => 402));
+                                wp_die(esc_html__('Divergent payment', 'woocommerce-iopay'), '', array('response' => 402));
                             }
 
                             $status = sanitize_text_field($status_iopay);
