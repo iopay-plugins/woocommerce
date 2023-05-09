@@ -404,7 +404,7 @@ class WC_Iopay_API {
         }
 
         if ('iopay-credit-card' === $this->gateway->id) {
-            $installment = $_POST['iopay_installments'];
+            $installment = sanitize_text_field($_POST['iopay_installments']);
             $destino = 'interest_rate_installment_' . $installment;
             ${$destino} = $destino;
 
@@ -440,12 +440,13 @@ class WC_Iopay_API {
 
             $data['payment_method'] = 'credit';
             $setting = $this->gateway->settings;
+            $token = sanitize_text_field($_POST['token']);
 
             $data['data_creditcard'] = array(
                 'amount' => number_format($total_juros * 100, 0, '', ''),
                 'currency' => 'BRL',
                 'description' => 'Produto teste',
-                'token' => $_POST['token'],
+                'token' => $token,
                 'capture' => 1,
                 'statement_descriptor' => 'Compra com cartao',
                 'installment_plan' => array('number_installments' => (int) $installment),
@@ -456,25 +457,26 @@ class WC_Iopay_API {
             );
 
             if ($setting['antifraude']) {
-                $phone_aux = $_POST['billing_phone'];
+                $phone_aux = sanitize_text_field($_POST['billing_phone']);
 
                 $ddd = substr($phone_aux, 0, 5);
                 $number_phone = substr($phone_aux, 5);
 
                 $billing_phone = trim($ddd) . $number_phone;
+                $billing_cpf = sanitize_text_field($_POST['billing_cpf']) ?? '';
 
-                $taxpayer_id = str_replace(array('.', '-'), array('', ''), $_POST['billing_cpf']);
-                $firstname = null == $_POST['shipping_first_name'] ? $_POST['billing_first_name'] : $_POST['shipping_first_name'];
-                $lastname = null == $_POST['shipping_last_name'] ? $_POST['billing_last_name'] : $_POST['shipping_last_name'];
-                $address_1 = null == $_POST['billing_address_1'] ? $_POST['billing_address_1'] : $_POST['billing_address_1'];
-                $address_2 = null == $_POST['shipping_number'] ? $_POST['billing_number'] : $_POST['shipping_number'];
-                $address_3 = null == $_POST['billing_address_2'] ? $_POST['billing_address_2'] : $_POST['billing_address_2'];
-                $postal_code = null == $_POST['shipping_postcode'] ? $_POST['billing_postcode'] : $_POST['shipping_postcode'];
-                $city = null == $_POST['shipping_city'] ? $_POST['billing_city'] : $_POST['shipping_city'];
-                $state = null == $_POST['shipping_state'] ? $_POST['billing_state'] : $_POST['shipping_state'];
+                $taxpayer_id = str_replace(array('.', '-'), array('', ''), $billing_cpf);
+                $firstname = sanitize_text_field($_POST['shipping_first_name'] ?? $_POST['billing_first_name']);
+                $lastname = sanitize_text_field($_POST['shipping_last_name'] ?? $_POST['billing_last_name']);
+                $address_1 = sanitize_text_field($_POST['shipping_address_1'] ?? $_POST['billing_address_1']);
+                $address_2 = sanitize_text_field($_POST['shipping_number'] ?? $_POST['billing_number']);
+                $address_3 = sanitize_text_field($_POST['shipping_address_2'] ?? $_POST['billing_address_2']);
+                $postal_code = sanitize_text_field($_POST['shipping_postcode'] ?? $_POST['billing_postcode']);
+                $city = sanitize_text_field($_POST['shipping_city'] ?? $_POST['billing_city']);
+                $state = sanitize_text_field($_POST['shipping_state'] ?? $_POST['billing_state']);
                 $client_type = 'pf';
                 $phone_number = $billing_phone;
-                $antifraud_sessid = $_POST['session_id'];
+                $antifraud_sessid = sanitize_text_field($_POST['session_id']);
 
                 $shipping = array(
                     'taxpayer_id' => (string) trim($taxpayer_id),
@@ -497,8 +499,8 @@ class WC_Iopay_API {
             $data['payment_method'] = 'boleto';
             $setting = $this->gateway->settings;
             $expiration_date = date('Y-m-d', strtotime('+3 days', strtotime(date('Y-m-d'))));
-            $interest_value = (float) str_replace(',', '.', $setting['interest_rate_value']);
-            $late_fee_value = (float) str_replace(',', '.', $setting['late_fee_value']);
+            $interest_value = (float) str_replace(',', '.', $setting['interest_rate_value'] ?? '0');
+            $late_fee_value = (float) str_replace(',', '.', $setting['late_fee_value'] ?? '0');
 
             if ($setting['expiration_date'] > 0) {
                 $expiration_date = date('Y-m-d', strtotime('+' . $setting['expiration_date'] . ' days', strtotime(date('Y-m-d'))));
@@ -570,29 +572,29 @@ class WC_Iopay_API {
         }
 
         $_customer = $data['customer'];
-        $customer['customerName'] = $_customer['name'];
-        $customer['customerEmail'] = $_customer['email'];
+        $customer['customerName'] = sanitize_text_field($_customer['name']);
+        $customer['customerEmail'] = sanitize_email($_customer['email']);
 
         if (isset($_customer['document_number'])) {
-            $customer['customerDocumentNumber'] = $_customer['document_number'];
+            $customer['customerDocumentNumber'] = sanitize_text_field($_customer['document_number']);
         }
 
         if (isset($_customer['address'])) {
-            $customer['customerAddressStreet'] = $_customer['address']['street'];
-            $customer['customerAddressComplementary'] = $_customer['address']['complementary'];
-            $customer['customerAddressZipcode'] = $_customer['address']['zipcode'];
+            $customer['customerAddressStreet'] = sanitize_text_field($_customer['address']['street']);
+            $customer['customerAddressComplementary'] = sanitize_text_field($_customer['address']['complementary']);
+            $customer['customerAddressZipcode'] = sanitize_text_field($_customer['address']['zipcode']);
 
             if (isset($_customer['address']['street_number'])) {
-                $customer['customerAddressStreetNumber'] = $_customer['address']['street_number'];
+                $customer['customerAddressStreetNumber'] = sanitize_text_field($_customer['address']['street_number']);
             }
             if (isset($_customer['address']['neighborhood'])) {
-                $customer['customerAddressNeighborhood'] = $_customer['address']['neighborhood'];
+                $customer['customerAddressNeighborhood'] = sanitize_text_field($_customer['address']['neighborhood']);
             }
         }
 
         if (isset($_customer['phone'])) {
-            $customer['customerPhoneDdd'] = $_customer['phone']['ddd'];
-            $customer['customerPhoneNumber'] = $_customer['phone']['number'];
+            $customer['customerPhoneDdd'] = sanitize_text_field($_customer['phone']['ddd']);
+            $customer['customerPhoneNumber'] = sanitize_text_field($_customer['phone']['number']);
         }
 
         return $customer;

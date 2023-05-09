@@ -83,7 +83,7 @@ if ( ! class_exists('WC_Iopay')) {
          * Check payment ajax request.
          */
         public function check_pix_payment() {
-            $order_id = $_GET['key']; // wc_get_order_id_by_order_key($_GET['key']);
+            $order_id = sanitize_text_field($_GET['key']); // wc_get_order_id_by_order_key($_GET['key']);
             $order = wc_get_order($order_id);
 
             if ($order) {

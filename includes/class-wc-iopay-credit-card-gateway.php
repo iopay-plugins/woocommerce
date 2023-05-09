@@ -290,7 +290,7 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                 'iopay-credit-card',
                 'wcIopayParams',
                 array(
-                    'session_id' => $_SESSION['iopay_session'],
+                    'session_id' => sanitize_text_field($_SESSION['iopay_session']),
                     'auth_key' => $token,
                     'url_iopay_auth' => site_url() . '/wp-json/iopay/v1/auth',
                     'url_iopay_tokenize' => $this->api->get_api_url() . 'v1/card/tokenize/token',
@@ -312,7 +312,7 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                     array(
                         'public_key' => $this->get_option('antifraude'),
                         'plan' => 'with_anti_fraud',
-                        'session_id' => $_SESSION['iopay_session'],
+                        'session_id' => sanitize_text_field($_SESSION['iopay_session']),
                         'encryptionKey' => $this->encryption_key,
                     )
                 );
