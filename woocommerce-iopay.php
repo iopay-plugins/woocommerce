@@ -2,11 +2,11 @@
 
 /**
  * Plugin Name: IOPAY for WooCommerce
- * Plugin URI: http://github.com/claudiosmweb/woocommerce-iopay
+ * Plugin URI: https://github.com/iopay-plugins/woocommerce
  * Description: Gateway de pagamento IOPAY para WooCommerce.
  * Author: Jeronimo Cardoso
  * Author URI: https://iopay.com.br/
- * Version: 1.1.0
+ * Version: 1.1.1
  * License: GPLv2 or later
  * Text Domain: woocommerce-iopay
  * Domain Path: /languages/.
@@ -25,7 +25,7 @@ if ( ! class_exists('WC_Iopay')) {
          *
          * @var string
          */
-        public const VERSION = '1.1.0';
+        public const VERSION = '1.1.1';
 
         /**
          * Instance of this class.
