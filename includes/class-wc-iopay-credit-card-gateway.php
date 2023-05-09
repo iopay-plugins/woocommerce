@@ -50,7 +50,7 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
             $this->{$destino} = $this->get_option('interest_rate_installment_' . $installment, '0');
 
             $data_rate['interest_rate_installment_' . $installment] = array(
-                'title' => __('Installment interest', 'woocommerce-iopay') . $installment,
+                'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . $installment,
                 'type' => 'text',
                 'default' => '0',
             );
@@ -196,62 +196,62 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                 ),
             ),
             'interest_rate_installment_1' => array(
-                'title' => __('Installment interest', 'woocommerce-iopay') . 1,
+                'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . 1,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_2' => array(
-                'title' => __('Installment interest', 'woocommerce-iopay') . 2,
+                'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . 2,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_3' => array(
-                'title' => __('Installment interest', 'woocommerce-iopay') . 3,
+                'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . 3,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_4' => array(
-                'title' => __('Installment interest', 'woocommerce-iopay') . 4,
+                'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . 4,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_5' => array(
-                'title' => __('Installment interest', 'woocommerce-iopay') . 5,
+                'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . 5,
                 'desc_tip' => true,
                 'default' => '0',
             ),
             'interest_rate_installment_6' => array(
-                'title' => __('Installment interest', 'woocommerce-iopay') . 6,
+                'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . 6,
                 'desc_tip' => true,
                 'default' => '0',
             ),
             'interest_rate_installment_7' => array(
-                'title' => __('Installment interest', 'woocommerce-iopay') . 7,
+                'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . 7,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_8' => array(
-                'title' => __('Installment interest', 'woocommerce-iopay') . 8,
+                'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . 8,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_9' => array(
-                'title' => __('Installment interest', 'woocommerce-iopay') . 9,
+                'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . 9,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_10' => array(
-                'title' => __('Installment interest', 'woocommerce-iopay') . 10,
+                'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . 10,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_11' => array(
-                'title' => __('Installment interest', 'woocommerce-iopay') . 11,
+                'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . 11,
                 'type' => 'text',
                 'default' => '0',
             ),
             'interest_rate_installment_12' => array(
-                'title' => __('Installment interest', 'woocommerce-iopay') . 12,
+                'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . 12,
                 'type' => 'text',
                 'default' => '0',
             ),
