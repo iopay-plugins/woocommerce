@@ -53,6 +53,7 @@ class WC_Iopay_Banking_Ticket_Gateway extends Wc_Iopay_Paymethod_Gateway {
         $this->api = new WC_Iopay_API($this);
 
         // Actions.
+        add_action('wp_enqueue_scripts', array($this, 'checkout_styles'));
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
         add_action('woocommerce_thankyou_' . $this->id, array($this, 'thankyou_page'));
         add_action('woocommerce_email_after_order_table', array($this, 'email_instructions'), 10, 3);
@@ -88,7 +89,7 @@ class WC_Iopay_Banking_Ticket_Gateway extends Wc_Iopay_Paymethod_Gateway {
             'sandbox' => array(
                 'title' => __('Sandbox Iopay', 'woocommerce-iopay'),
                 'type' => 'checkbox',
-                'label' => __('Ativar Sandbox Iopay', 'woocommerce-iopay'),
+                'label' => __('Activate Iopay Sandbox', 'woocommerce-iopay'),
                 'default' => 'no',
                 'desc_tip' => true),
             'title' => array(
@@ -106,29 +107,29 @@ class WC_Iopay_Banking_Ticket_Gateway extends Wc_Iopay_Paymethod_Gateway {
                 'default' => __('Pay with Banking Ticket', 'woocommerce-iopay'),
             ),
             'statement_descriptor' => array(
-                'title' => __('Intruções', 'woocommerce-iopay'),
+                'title' => __('Instructions', 'woocommerce-iopay'),
                 'type' => 'textarea',
-                'description' => __('Intruções que seu cliente verá no boleto.', 'woocommerce-iopay'),
+                'description' => __('Instructions your customer will see on the ticket.', 'woocommerce-iopay'),
                 'desc_tip' => true,
             ),
             'interest_rate_value' => array(
-                'title' => __('Taxa de juros diária %', 'woocommerce-iopay'),
+                'title' => __('Daily interest rate %', 'woocommerce-iopay'),
                 'type' => 'text',
-                'description' => __('Juros diarios por atraso em porcentagem, nao ultrapassar 3.3% ao dia. Nota: use 0 para nao cobrar juros.', 'woocommerce-iopay'),
+                'description' => __('Daily interest for delay in percentage, not to exceed 3.3% per day. Note: use 0 to not charge interest.', 'woocommerce-iopay'),
                 'desc_tip' => true,
                 'default' => '0',
             ),
             'late_fee_value' => array(
-                'title' => __('Multa por atraso em %', 'woocommerce-iopay'),
+                'title' => __('Fine for delay in %', 'woocommerce-iopay'),
                 'type' => 'text',
-                'description' => __('Multa por atraso em porcentagem, nao ultrapassar 100% do valor do bolero. Nota: use 0 para nao cobrar multa', 'woocommerce-iopay'),
+                'description' => __('Fine for late payment in percentage, not exceeding 100% of the value of the bill. Note: use 0 to not charge a fine.', 'woocommerce-iopay'),
                 'desc_tip' => true,
                 'default' => '0',
             ),
             'expiration_date' => array(
-                'title' => __('Dias de vencimento', 'woocommerce-iopay'),
+                'title' => __('Expiry days', 'woocommerce-iopay'),
                 'type' => 'number',
-                'description' => __('O prazo mínimo de vencimento é de 1 dia e máximo 180 dias a contar do dia posterior à emissão do boleto. Caso não seja informado o vencimento padrão é de 3 dias', 'woocommerce-iopay'),
+                'description' => __('The minimum maturity period is 1 day and the maximum 180 days from the day following the issuance of the bill. If not informed, the default expiration is 3 days.', 'woocommerce-iopay'),
                 'desc_tip' => true,
                 'default' => 3,
                 'custom_attributes' => array('minlength' => 1, 'maxlength' => 100),
@@ -139,14 +140,14 @@ class WC_Iopay_Banking_Ticket_Gateway extends Wc_Iopay_Paymethod_Gateway {
                 'description' => '',
             ),
             'integration2' => array(
-                'title' => __('Webhook - aviso de notificações', 'woocommerce-iopay'),
+                'title' => __('Webhook - Notifications warning', 'woocommerce-iopay'),
                 'type' => 'title',
-                'description' => sprintf(__('Por favor cadastre A URL de notificação <span style="font-size:18px; font-weight:bold">( <a href="#" id="copy_link_iopay"  >' . site_url() . '/wp-json/iopay/v1/notification</a>  )</span> em seu painel:  %s.', 'woocommerce-iopay'), '<a href="https://minhaconta.iopay.com.br/settings/online_payment">' . __('Iopay Dashboard > My Account page', 'woocommerce-iopay') . '</a>'),
+                'description' => sprintf(__('Please register the notification URL %s in your panel: %s.', 'woocommerce-iopay'), '<span style="font-size:18px; font-weight:bold">( <a href="#" id="copy_link_iopay"  >' . site_url() . '/wp-json/iopay/v1/notification</a>  )</span>', '<a href="https://minhaconta.iopay.com.br/settings/online_payment">' . __('Iopay Dashboard > My Account page', 'woocommerce-iopay') . '</a>'),
             ),
             'email_auth' => array(
-                'title' => __('E-mail Auth', 'woocommerce-iopay'),
+                'title' => __('Email Auth', 'woocommerce-iopay'),
                 'type' => 'email',
-                'description' => __('E-mail usando para autenticacao com a API.', 'woocommerce-iopay'),
+                'description' => __('Email used for authentication with the API.', 'woocommerce-iopay'),
                 'desc_tip' => true,
                 'default' => __(get_option('admin_email'), 'woocommerce-iopay'),
             ),
@@ -208,6 +209,17 @@ class WC_Iopay_Banking_Ticket_Gateway extends Wc_Iopay_Paymethod_Gateway {
      */
     public function process_payment($order_id) {
         return $this->api->process_regular_payment($order_id);
+    }
+
+    /**
+     * Define style load for frontend PIX.
+     *
+     * @since 1.1.1
+     */
+    public function checkout_styles() {
+        if (is_checkout() || is_add_payment_method_page() || is_order_received_page() || is_order_received_page()) {
+            wp_enqueue_style('iopay-banking-ticket-style', plugins_url('assets/css/banking-ticket.css', plugin_dir_path(__FILE__)), array(), WC_Iopay::VERSION);
+        }
     }
 
     /**

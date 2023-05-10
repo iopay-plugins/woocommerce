@@ -540,3 +540,72 @@ msgstr ""
 msgctxt "no free installments"
 msgid "None"
 msgstr ""
+
+msgid "PIX Settings"
+msgstr ""
+
+msgid "Pay with PIX"
+msgstr ""
+
+msgid "Payment under review."
+msgstr ""
+
+msgid "Payment failed, please contact our call center, or try again later."
+msgstr ""
+
+msgid "There was an error with your payment."
+msgstr ""
+
+msgid "Divergent payment"
+msgstr ""
+
+msgid "ID does not match"
+msgstr ""
+
+msgid "Activate Iopay Sandbox"
+msgstr ""
+
+msgid "Instructions"
+msgstr ""
+
+msgid "Daily interest rate %"
+msgstr ""
+
+msgid "Instructions your customer will see on the ticket."
+msgstr ""
+
+msgid "Daily interest for delay in percentage, not to exceed 3.3% per day. Note: use 0 to not charge interest."
+msgstr ""
+
+msgid "Fine for delay in %"
+msgstr ""
+
+msgid "Fine for late payment in percentage, not exceeding 100% of the value of the bill. Note: use 0 to not charge a fine."
+msgstr ""
+
+msgid "Expiry days"
+msgstr ""
+
+msgid "The minimum maturity period is 1 day and the maximum 180 days from the day following the issuance of the bill. If not informed, the default expiration is 3 days."
+msgstr ""
+
+msgid "Webhook - Notifications warning"
+msgstr ""
+
+msgid "Please register the notification URL %s in your panel: %s."
+msgstr ""
+
+msgid "Email used for authentication with the API."
+msgstr ""
+
+msgid "Installment interest"
+msgstr ""
+
+msgid "Antifraud Public Key"
+msgstr ""
+
+msgid "If your plan has anti-fraud, put your public key here."
+msgstr ""
+
+msgid "Enable Iopay PIX"
+msgstr ""

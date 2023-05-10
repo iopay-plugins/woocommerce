@@ -1,101 +1,111 @@
 === IOPAY for WooCommerce ===
-Contributors: Jeronimo Cardoso
-Tags: woocommerce, iopay, payment
-Requires at least: 4.0
+Contributors: linknacional
+Donate link: https://iopay.com.br/
+Tags: woocommerce, iopay, payment, pix
+Requires at least: 5.7
 Tested up to: 6.2
-Stable tag: 1.1.0
+Requires PHP: 7.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Receba pagamentos por cartão de crédito, pix e boleto
+Receive payments by credit card, pix and banking ticket
 
 == Description ==
 
-O [IOPAY](https://iopay.com.br/) é a melhor forma de receber pagamentos online por cartão de crédito, pix e boleto bancário, sendo possível o cliente fazer todo o pagamento sem sair da sua loja WooCommerce.
+[IOPAY](https://iopay.com.br/) is the best way to receive online payments by credit card, pix and bank slip, allowing the customer to make the entire payment without leaving your WooCommerce store.
 
-Saiba mais como o Iopay funciona:
-
-https://iopay.com.br/
-
-
-= Compatibilidade =
-
-Compatível com desde a versão 2.2.x do WooCommerce.
-
-Este plugin funciona integrado com o [WooCommerce Extra Checkout Fields for Brazil](http://wordpress.org/plugins/woocommerce-extra-checkout-fields-for-brazil/), desta forma é possível enviar documentos do cliente como "CPF" ou "CNPJ", além dos campos "número" e "bairro" do endereço. 
-
-= Instalação =
-
-Confira o nosso guia de instalação:
+Learn more about how Iopay works in:
 
 https://iopay.com.br/
 
-= Dúvidas? =
+**Dependencies**
 
-Você pode esclarecer suas dúvidas usando:
+* Payment gateway IOPAY for WooCommerce plugin is dependent on [WooCommerce](https://wordpress.org/plugins/woocommerce/) plugin, please make sure WooCommerce is installed and properly configured before plugin activation.
 
-faq
+* Payment gateway IOPAY for WooCommerce plugin is dependent on [Brazilian Market on WooCommerce](https://br.wordpress.org/plugins/woocommerce-extra-checkout-fields-for-brazil/) plugin, please make sure Brazilian Market on WooCommerce is installed and properly configured before plugin activation.
 
-= Instalação do plugin: =
+**User instructions**
 
-* Envie os arquivos do plugin para a pasta wp-content/plugins, ou instale usando o instalador de plugins do WordPress.
-* Ative o plugin.
+With the plugin installed, access the WordPress admin and enter "WooCommerce" > "Settings" > "Payment" and configure the options "IOPAY - Banking Ticket", "IOPAY - Credit Card" e "IOPAY - PIX".
 
-= Requerimentos: =
+Enable the option you want, fill in the Email, **Iopay API Key** and **Iopay Encryption Key** options that you can find inside your IOPAY account at **https://minhaconta.iopay.com.br/settings/online_payment**.
 
-É necessário possuir uma conta no [IOPAY](https://iopay.com.br/) e ter instalado o [WooCommerce](http://wordpress.org/plugins/woocommerce/).
+You will also need to use the plugin [WooCommerce Extra Checkout Fields for Brazil](http://wordpress.org/plugins/woocommerce-extra-checkout-fields-for-brazil/) to be able to send CPF and CNPJ fields.
 
-= Configurações do Plugin: =
+That's it, your store can now receive payments through IOPAY.
 
-Com o plugin instalado acesse o admin do WordPress e entre em "WooCommerce" > "Configurações" > "Finalizar compra" e configure as opção "IOPAY - Boleto bancário", "IOPAY - Cartão de crédito" e "IOPAY - PIX".
+More information about plugin settings at: [installation guide](https://docs.iopay.com.br/products/modulos-para-ecommerce/wordpress-woocommerce).
 
-Habilite a opção que você deseja, preencha as opções de Email, **IO_SELLER_ID** e **Secret - Chave de Criptografia** que você pode encontrar dentro da sua conta na IOPAY em **https://minhaconta.iopay.com.br/settings/online_payment**.
+= Compatibility =
 
-Também será necessário utilizar o plugin [WooCommerce Extra Checkout Fields for Brazil](http://wordpress.org/plugins/woocommerce-extra-checkout-fields-for-brazil/) para poder enviar campos de CPF e CNPJ.
+Compatible since WooCommerce version 7.4.x.
 
-Pronto, sua loja já pode receber pagamentos pelo IOPAY.
+This plugin works integrated with [WooCommerce Extra Checkout Fields for Brazil](http://wordpress.org/plugins/woocommerce-extra-checkout-fields-for-brazil/), in this way, it is possible to send customer documents such as "CPF" or "CNPJ", in addition to the "number" and "district" fields of the address.
 
-Mais informações sobre as configurações do plugin em: 
+= Installation =
 
-= Qual é a licença do plugin? =
+Check out our [installation guide](https://docs.iopay.com.br/products/modulos-para-ecommerce/wordpress-woocommerce).
 
-Este plugin esta licenciado como GPL.
+== Frequently Asked Questions ==
 
-= O que eu preciso para utilizar este plugin? =
+= What is the plugin license? =
 
-* Ter instalado o plugin WooCommerce 2.2 ou superior.
-* Possuir uma conta na IOPAY.
-* Pegar suas credencias na IOPAY.
+* This plugin is released under a GPL license.
 
-= Quanto custa a IOPAY? =
+= What is needed to use this plugin? =
 
-Confira os preços em "https://iopay.com.br/precos".
+* WooCommerce version 7.4.x or latter installed and active;
+* Brazilian Market on WooCommerce version 3.4.x or latter installed and active;
+* An active account at [IOPAY](https://iopay.com.br/);
+* IOPAY [integration cretentials](https://docs.iopay.com.br/credenciais-de-acesso).
 
-= O pedido foi pago e ficou com o status de "processando" e não como "concluído", isto esta certo ? =
+= How much does IOPAY cost? =
 
-Sim, esta certo e significa que o plugin esta trabalhando como deveria.
+Check prices at "https://iopay.com.br/precos".
 
-Todo gateway de pagamentos no WooCommerce deve mudar o status do pedido para "processando" no momento que é confirmado o pagamento e nunca deve ser alterado sozinho para "concluído", pois o pedido deve ir apenas para o status "concluído" após ele ter sido entregue.
+= The order was paid and the status was "processing" and not "completed", is this correct? =
 
-Para produtos baixáveis a configuração padrão do WooCommerce é permitir o acesso apenas quando o pedido tem o status "concluído", entretanto nas configurações do WooCommerce na aba *Produtos* é possível ativar a opção **"Conceder acesso para download do produto após o pagamento"** e assim liberar o download quando o status do pedido esta como "processando".
+Yes, that's right and it means the plugin is working as it should.
 
-= É obrigatório enviar todos os campos para processar o pagamento? =
+Every payment gateway in WooCommerce must change the order status to "processing" at the moment the payment is confirmed and it must never be changed alone to "completed", as the order should only go to the "completed" status after it has been delivered.
 
-Não é obrigatório caso você não utilize antifraude.
+For downloadable products the default WooCommerce setting is to allow access only when the order has the status "completed", however in the WooCommerce settings on the *Products* tab it is possible to activate the option **"Grant access to download the product after payment "** and thus release the download when the order status is "processing".
 
-É possível remover os campos de endereço, empresa e telefone, mantendo apenas nome, sobrenome e e-mail utilizando o plugin [WooCommerce Digital Goods Checkout](https://wordpress.org/plugins/wc-digital-goods-checkout/), mais lembre-se esses campos sào obrigatórios quando seu plano tiver antifraude incluido.
+= Is it mandatory to send all fields to process the payment? =
+
+It is not mandatory if you do not use anti-fraud.
+
+It is possible to remove the address, company and telephone fields, keeping only first name, last name and e-mail using the plugin [WooCommerce Digital Goods Checkout](https://wordpress.org/plugins/wc-digital-goods-checkout/), but remember these fields are mandatory when your plan has anti-fraud included.
+
+== Screenshots ==
+
+1. none
 
 == Changelog ==
 
+= 1.1.1 =
+* **09/05/2023**
+* Addition of space in the title of installment interest settings;
+* Added sanitization and handling of empty attributes;
+* Standardization of script loading and styling according to WordPress regulations;
+* Fixed translations, added missing translations and tweaked translation files.
+
 = 1.1.0 =
-* Correção de bug de cartão de crédito sem parcelas configuradas;
-* Retirar funções depreciadas do PHP;
-* Melhoria do sistema de tratamento de erros do PHP;
-* URL de notificações da área administrativa corrigida;
-* Corrigido bug de função de registro de rota de notificações;
-* Adição de código de barras na cobrança com boleto bancário;
-* Melhoria de funções de notificações via webhook.
+* **05/05/2023**
+* Credit card bug fix without installments configured;
+* Removing deprecated PHP functions;
+* Improved PHP error handling system;
+* Corrected admin area notifications URL;
+* Fixed bug of notifications route record function;
+* Addition of barcode in billing with bank slip;
+* Improved notification functions via webhook.
 
 = 1.0.0 =
+* **21/09/2022**
+* Plugin launch.
 
-* Versão incial do plugin. 21/09/2022
+== Upgrade Notice ==
+
+= 1.0.0 =
+* Plugin launch.
