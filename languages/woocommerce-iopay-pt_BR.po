@@ -1,10 +1,5 @@
-# Copyright (C) 2021 Iopay, Claudio Sanches
-# This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Iopay for WooCommerce 2.5.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woocommerce-"
-"iopay\n"
 "POT-Creation-Date: 2022-09-15 22:37-0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -562,24 +557,10 @@ msgstr "Configurações do Cartão de Crédito"
 msgid "Iopay for WooCommerce"
 msgstr "Iopay para WooCommerce"
 
-#. Plugin URI of the plugin/theme
-msgid "http://github.com/claudiosmweb/woocommerce-iopay"
-msgstr "http://github.com/jeronimo0007"
-
 #. Description of the plugin/theme
 #, fuzzy
 msgid "Gateway de pagamento Iopay para WooCommerce."
 msgstr "Gateway de pagamento Iopay para WooCommerce."
-
-#. Author of the plugin/theme
-#, fuzzy
-msgid "Iopay, Claudio Sanches"
-msgstr "Iopay, Claudio Sanches"
-
-#. Author URI of the plugin/theme
-#, fuzzy
-msgid "https://iopay/"
-msgstr "https://iopay/"
 
 #: includes/class-wc-iopay-credit-card-gateway.php:197
 msgctxt "no free installments"
