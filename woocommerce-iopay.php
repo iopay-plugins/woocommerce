@@ -4,7 +4,7 @@
  * Plugin Name: IOPAY for WooCommerce
  * Plugin URI: https://github.com/iopay-plugins/woocommerce
  * Description: Gateway de pagamento IOPAY para WooCommerce.
- * Author: Jeronimo Cardoso
+ * Author: IoPay
  * Author URI: https://iopay.com.br/
  * Version: 1.1.1
  * License: GPLv2 or later

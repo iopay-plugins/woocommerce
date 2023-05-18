@@ -1,5 +1,5 @@
 === IOPAY for WooCommerce ===
-Contributors: linknacional
+Contributors: iopay, linknacional
 Donate link: https://iopay.com.br/
 Tags: woocommerce, iopay, payment, pix
 Requires at least: 5.7
