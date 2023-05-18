@@ -1,5 +1,9 @@
 # Changelog
 
+### v1.1.2 - 18/05/2023
+* Alteração de nome de autor;
+* Retirar links de arquivo de tradução.
+
 ### v1.1.1 - 09/05/2023
 * Adição de espaço no título das configurações de juros da parcela;
 * Adição de sanitização e tratamento de atributos vazios;
