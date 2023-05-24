@@ -322,7 +322,9 @@ class WC_Iopay_API {
             update_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, array_map('sanitize_text_field', $iopay_customer));
         }
 
-        $string_produtos = '';
+        // TODO não inserir string de produtos já que o description tem limite de 60 caracteres
+        // talvez colocar nome da loja ou configuração definida para o cliente inserir?
+        // $string_produtos = '';
 
         foreach ($order->get_items() as $item) {
             $dados_item = $item->get_data();
@@ -334,7 +336,7 @@ class WC_Iopay_API {
                 'quantity' => $dados_item['quantity'],
             );
 
-            $string_produtos .= 'Compra Produto: ' . trim($dados_item['name']) . ' - ';
+            // $string_produtos .= 'Compra Produto: ' . trim($dados_item['name']) . ' - ';
         }
 
         $data['products'] = $items;
@@ -445,7 +447,7 @@ class WC_Iopay_API {
             $data['data_creditcard'] = array(
                 'amount' => number_format($total_juros * 100, 0, '', ''),
                 'currency' => 'BRL',
-                'description' => 'Produto teste',
+                'description' => 'Compra produto pedido: ' . $order->get_id(),
                 'token' => $token,
                 'capture' => 1,
                 'statement_descriptor' => 'Compra com cartao',
@@ -456,7 +458,7 @@ class WC_Iopay_API {
                 'products' => $items,
             );
 
-            if ($setting['antifraude']) {
+            if ( ! empty($setting['antifraude'])) {
                 $phone_aux = sanitize_text_field($_POST['billing_phone']);
 
                 $ddd = substr($phone_aux, 0, 5);
@@ -510,7 +512,7 @@ class WC_Iopay_API {
                 $data['data_boleto'] = array(
                     'amount' => (int) number_format($order->get_total() * 100, 0, '', ''),
                     'currency' => 'BRL',
-                    'description' => $string_produtos,
+                    'description' => 'Compra produto pedido: ' . $order->get_id(),
                     'statement_descriptor' => $setting['statement_descriptor'],
                     'io_seller_id' => $this->gateway->api_key,
                     'payment_type' => 'boleto',
@@ -530,7 +532,7 @@ class WC_Iopay_API {
                 $data['data_boleto'] = array(
                     'amount' => (int) number_format($order->get_total() * 100, 0, '', ''),
                     'currency' => 'BRL',
-                    'description' => $string_produtos,
+                    'description' => 'Compra produto pedido: ' . $order->get_id(),
                     'statement_descriptor' => $setting['statement_descriptor'],
                     'io_seller_id' => $this->gateway->api_key,
                     'payment_type' => 'boleto',
@@ -544,7 +546,7 @@ class WC_Iopay_API {
             $data['data_pix'] = array(
                 'amount' => (int) number_format($order->get_total() * 100, 0, '', ''),
                 'currency' => 'BRL',
-                'description' => $string_produtos,
+                'description' => 'Compra produto pedido: ' . $order->get_id(),
                 'io_seller_id' => $this->gateway->api_key,
                 'payment_type' => 'pix',
                 'reference_id' => $order->get_order_number(),
