@@ -1,5 +1,8 @@
 # Changelog
 
+### v1.1.3 - 25/05/2023
+* Correção de bug de descrição de transação excedendo limite de 60 caracteres.
+
 ### v1.1.2 - 18/05/2023
 * Alteração de nome de autor;
 * Retirar links de arquivo de tradução.

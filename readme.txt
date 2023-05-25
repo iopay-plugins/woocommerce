@@ -5,7 +5,7 @@ Tags: woocommerce, iopay, payment, pix
 Requires at least: 5.7
 Tested up to: 6.2
 Requires PHP: 7.0
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,6 +83,10 @@ It is possible to remove the address, company and telephone fields, keeping only
 1. none
 
 == Changelog ==
+
+- 1.1.3 = 25/05/2023
+**25/05/2023**
+* Fixed transaction description bug exceeding 60 character limit.
 
 = 1.1.2 =
 **18/05/2023**
