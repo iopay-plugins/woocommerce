@@ -1,5 +1,8 @@
 # Changelog
 
+### v1.1.4 - 30/05/2023
+* Correção de bug de transação não realizada para cliente sem cadastro.
+
 ### v1.1.3 - 25/05/2023
 * Correção de bug de descrição de transação excedendo limite de 60 caracteres.
 

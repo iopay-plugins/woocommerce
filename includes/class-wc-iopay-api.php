@@ -295,6 +295,8 @@ class WC_Iopay_API {
 
             $billing_phone = trim($ddd) . $number_phone;
         }
+
+        // TODO refactor iopay customer_id
         $iopay_customer = false; // get_user_meta($order->get_user_id(), 'iopay_customer_'.$this->gateway->api_key);
 
         if ( ! $iopay_customer) {
@@ -318,6 +320,8 @@ class WC_Iopay_API {
             );
 
             $iopay_customer = $this->iopayRequest($this->get_api_url() . $endpoint, $data_customer);
+
+            $order->add_meta_data('iopay_customer_id', $iopay_customer['id'], true);
 
             update_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, array_map('sanitize_text_field', $iopay_customer));
         }
@@ -616,7 +620,7 @@ class WC_Iopay_API {
             $this->gateway->log->add($this->gateway->id, 'Doing a transaction for order ' . $order->get_order_number() . '...');
         }
 
-        $data = $this->do_request($args);
+        $data = $this->do_request($args, $order);
 
         if ( ! empty($data['error'])) {
             if ('yes' === $this->gateway->debug) {
@@ -756,12 +760,13 @@ class WC_Iopay_API {
     /**
      * Do requests in the Iopay API.
      *
-     * @param array $data request data
+     * @param array    $data  request data
+     * @param WC_Order $order
      *
      * @return array request response
      */
-    protected function do_request($data = array()) {
-        $iopay_customer = get_user_meta($data['customer']['id'], 'iopay_customer_' . $this->gateway->api_key);
+    protected function do_request($data = array(), $order) {
+        $iopay_customer_id = $order->get_meta('iopay_customer_id');
 
         if ('boleto' == $data['payment_method']) {
             $data = $data['data_boleto'];
@@ -771,7 +776,7 @@ class WC_Iopay_API {
             $data = $data['data_creditcard'];
         }
 
-        $endpoint = 'v1/transaction/new/' . $iopay_customer[0]['id'];
+        $endpoint = 'v1/transaction/new/' . $iopay_customer_id;
 
         return $this->iopayRequest($this->get_api_url() . $endpoint, $data);
     }
