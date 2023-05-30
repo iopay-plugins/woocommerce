@@ -84,7 +84,11 @@ It is possible to remove the address, company and telephone fields, keeping only
 
 == Changelog ==
 
-- 1.1.3 = 25/05/2023
+= 1.1.4 =
+**30/05/2023**
+* Bug fix for transaction not performed for customer without registration.
+
+= 1.1.3 = 25/05/2023
 **25/05/2023**
 * Fixed transaction description bug exceeding 60 character limit.
 
