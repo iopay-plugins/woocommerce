@@ -255,8 +255,7 @@ class WC_Iopay_API {
     /**
      * Generate the transaction data.
      *
-     * @param WC_Order $order  order data
-     * @param array    $posted form posted data
+     * @param WC_Order $order order data
      *
      * @return array transaction data
      */
@@ -471,15 +470,16 @@ class WC_Iopay_API {
                 $billing_phone = trim($ddd) . $number_phone;
                 $billing_cpf = sanitize_text_field($_POST['billing_cpf']) ?? '';
 
+                // TODO Necessita verificar se é vazio
                 $taxpayer_id = str_replace(array('.', '-'), array('', ''), $billing_cpf);
-                $firstname = sanitize_text_field($_POST['shipping_first_name'] ?? $_POST['billing_first_name']);
-                $lastname = sanitize_text_field($_POST['shipping_last_name'] ?? $_POST['billing_last_name']);
-                $address_1 = sanitize_text_field($_POST['shipping_address_1'] ?? $_POST['billing_address_1']);
-                $address_2 = sanitize_text_field($_POST['shipping_number'] ?? $_POST['billing_number']);
-                $address_3 = sanitize_text_field($_POST['shipping_address_2'] ?? $_POST['billing_address_2']);
-                $postal_code = sanitize_text_field($_POST['shipping_postcode'] ?? $_POST['billing_postcode']);
-                $city = sanitize_text_field($_POST['shipping_city'] ?? $_POST['billing_city']);
-                $state = sanitize_text_field($_POST['shipping_state'] ?? $_POST['billing_state']);
+                $firstname = sanitize_text_field(empty($_POST['shipping_first_name']) ? $_POST['billing_first_name'] : $_POST['shipping_first_name']);
+                $lastname = sanitize_text_field(empty($_POST['shipping_last_name']) ? $_POST['billing_last_name'] : $_POST['shipping_last_name']);
+                $address_1 = sanitize_text_field(empty($_POST['shipping_address_1']) ? $_POST['billing_address_1'] : $_POST['shipping_address_1']);
+                $address_2 = sanitize_text_field(empty($_POST['shipping_number']) ? $_POST['billing_number'] : $_POST['shipping_number']);
+                $address_3 = sanitize_text_field(empty($_POST['shipping_address_2']) ? $_POST['billing_address_2'] : $_POST['shipping_address_2']);
+                $postal_code = sanitize_text_field(empty($_POST['shipping_postcode']) ? $_POST['billing_postcode'] : $_POST['shipping_postcode']);
+                $city = sanitize_text_field(empty($_POST['shipping_city']) ? $_POST['billing_city'] : $_POST['shipping_city']);
+                $state = sanitize_text_field(empty($_POST['shipping_state']) ? $_POST['billing_state'] : $_POST['shipping_state']);
                 $client_type = 'pf';
                 $phone_number = $billing_phone;
                 $antifraud_sessid = sanitize_text_field($_POST['session_id']);
@@ -611,7 +611,6 @@ class WC_Iopay_API {
      *
      * @param WC_Order $order order data
      * @param array    $args  transaction args
-     * @param string   $token checkout token
      *
      * @return array response data
      */
