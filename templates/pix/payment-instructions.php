@@ -22,7 +22,7 @@ $qr_code = $pix_link;
 
 <div class="text-center">
     <section class="woocommerce-order-details"
-        style="display: <?php echo $paid ? 'none' : 'block'; ?>;">
+        style="display: <?php esc_attr_e($paid ? 'none' : 'block'); ?>;">
 
 
         <table class="woocommerce-table" style="width: 100%">
@@ -38,17 +38,15 @@ $qr_code = $pix_link;
                 <tr class="woocommerce-table">
 
                     <td class="woocommerce-table__product-name product-name">
-
-                        <img src="<?php echo $pix_qrcode_url; ?>" />
+                        <img src="<?php esc_attr_e($pix_qrcode_url); ?>" />
 
                     </td>
 
                     <td class="woocommerce-table__product-total product-total">
                         <button class="button copy-qr-code"><i class="fa fa-copy fa-lg pr-3"></i>Clique aqui para copiar
                             o código</button><br><br>
-
                         <textarea class="button copy-qr-code" cols="40"
-                            rows="6"><?php echo $pix_link; ?></textarea>
+                            rows="6"><?php esc_html_e($pix_link); ?></textarea>
                         <p class="text-success qrcode-copyed"
                             style="text-align: center; display: none; margin-top: 15px;">Código copiado com
                             sucesso!<br>Vá até o aplicativo do seu banco e cole o código.</p>
@@ -66,7 +64,7 @@ $qr_code = $pix_link;
     </section>
 
     <div id="successPixPaymentBox"
-        style="display: <?php echo $paid ? 'block' : 'none'; ?>;">
+        style="display: <?php esc_attr_e($paid ? 'block' : 'none'); ?>;">
         <h4>Obrigado pelo pagamento!</h4>
         <svg id="successAnimation" class="animated" xmlns="http://www.w3.org/2000/svg" width="180" height="180"
             viewBox="0 0 70 70">
@@ -79,7 +77,7 @@ $qr_code = $pix_link;
         </svg>
     </div>
     <div id="watingPixPaymentBox"
-        style="display: <?php echo $paid ? 'none' : 'block'; ?>;">
+        style="display: <?php esc_attr_e($paid ? 'none' : 'block'); ?>;">
         <?php
         if (preg_match('/\[copy_button\]/i', $order_recived_message)) {
             $order_recived_message = preg_replace('/\[copy_button\]/i', $copy_button_html, $order_recived_message, 1);
@@ -101,14 +99,14 @@ $qr_code = $pix_link;
             $order_recived_message = preg_replace('/\[expiration_date\]/i', date('d/m/Y H:i:s', strtotime($expiration_date)), $order_recived_message, 1);
         }
 
-        echo $order_recived_message;
+        esc_html_e($order_recived_message);
 ?>
 
         <div><input type="hidden"
-                value="<?php echo esc_html($qr_code); ?>"
+                value="<?php esc_attr_e($qr_code); ?>"
                 id="pixQrCodeInput"></div>
         <input type="hidden" name="wc_iopay_pix_order_key"
-            value="<?php echo esc_html( sanitize_text_field( $order->id ) ); ?>" />
+            value="<?php esc_attr_e( sanitize_text_field( $order->id ) ); ?>" />
 
     </div>
 </div>
