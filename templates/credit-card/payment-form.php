@@ -81,9 +81,11 @@ if (apply_filters('wc_iopay_allow_credit_card_installments', 1 < $max_installmen
         //  $interest = ( ( $cart_total * 100 ) < $installment['amount'] ) ? sprintf(__('(total of %s)', 'woocommerce-iopay'), strip_tags(wc_price($installment['amount'] / 100))) : __('(interest-free)', 'woocommerce-iopay');
         // $installment_amount = strip_tags( wc_price( $installment['amount'] / $installment['interest_rate'] ) * 100 );
         ?>
-            <option value="<?php esc_attr_e(absint($installment)); ?>">
+            <option
+                value="<?php esc_attr_e(absint($installment)); ?>">
                 <?php esc_html_e($installment); ?> -
-                <?php echo wp_kses(wc_price($parcelado), ['span','bdi']); ?></option>
+                <?php echo wp_kses_post(wc_price($parcelado)); ?>
+            </option>
             <?php } ?>
         </select>
     </p>
