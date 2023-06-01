@@ -84,6 +84,14 @@ It is possible to remove the address, company and telephone fields, keeping only
 
 == Changelog ==
 
+= 1.1.5 =
+**02/06/2023**
+* Fixed CPF/CNPJ detection bug;
+* Fixed unrecognized delivery fields bug;
+* Added IoPay customer saving by WordPress registration;
+* Added attribute escaping to templates;
+* Improved clarity of plugin settings.
+
 = 1.1.4 =
 **30/05/2023**
 * Bug fix for transaction not performed for customer without registration.
