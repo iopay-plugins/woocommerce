@@ -160,6 +160,12 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                     'required' => 'required',
                 ),
             ),
+            'antifraude' => array(
+                'title' => __('Antifraud Public Key', 'woocommerce-iopay'),
+                'type' => 'password',
+                'description' => __('If your plan has anti-fraud, put your public key here.', 'woocommerce-iopay'),
+                'desc_tip' => false,
+            ),
             'register_refused_order' => array(
                 'title' => __('Register Refused Order', 'woocommerce-iopay'),
                 'type' => 'checkbox',
@@ -254,12 +260,6 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                 'title' => __('Installment interest', 'woocommerce-iopay') . ' ' . 12,
                 'type' => 'text',
                 'default' => '0',
-            ),
-            'antifraude' => array(
-                'title' => __('Antifraud Public Key', 'woocommerce-iopay'),
-                'type' => 'password',
-                'description' => __('If your plan has anti-fraud, put your public key here.', 'woocommerce-iopay'),
-                'desc_tip' => false,
             ),
             'testing' => array(
                 'title' => __('Gateway Testing', 'woocommerce-iopay'),
