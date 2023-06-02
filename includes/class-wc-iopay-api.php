@@ -777,8 +777,6 @@ class WC_Iopay_API {
             $iopay_customer_id = $order->get_meta('iopay_customer_id', true);
         }
 
-        $this->gateway->log->add($this->gateway->id, 'PORRA DE VARIÁVEL É ARRAY? QUE MERDA HEIN: ' . var_export($iopay_customer_id, true));
-
         if ('boleto' == $data['payment_method']) {
             $data = $data['data_boleto'];
         } elseif ('pix' == $data['payment_method']) {
