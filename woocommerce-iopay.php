@@ -292,7 +292,6 @@ if ( ! class_exists('WC_Iopay')) {
          * @param string WP_REST_Request $request $type, $id, $reference_id
          */
         public function get_notification(WP_REST_Request $request) {
-            @ob_clean();
             $parameters = $request->get_params();
 
             $reference_id = (int) $parameters['reference_id'];

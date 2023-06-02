@@ -5,16 +5,10 @@ if ($order) {
     $paid = 'succeeded' === $status ? true : false;
 }
 
-ob_start();
-
 $copy_button_html = $pix_qrcode_url;
-$copy_button_html = ob_get_clean();
 $order_recived_message = 'Voce tem 15min para pagar com qrcode';
 
-ob_start();
-
 $qr_code_html = $qrcode_link;
-$qr_code_html = ob_get_clean();
 
 $qr_code = $pix_link;
 ?>
@@ -79,26 +73,6 @@ $qr_code = $pix_link;
     <div id="watingPixPaymentBox"
         style="display: <?php esc_attr_e($paid ? 'none' : 'block'); ?>;">
         <?php
-        if (preg_match('/\[copy_button\]/i', $order_recived_message)) {
-            $order_recived_message = preg_replace('/\[copy_button\]/i', $copy_button_html, $order_recived_message, 1);
-        } else {
-            $order_recived_message .= sprintf('<p>%s</p>', $copy_button_html);
-        }
-
-        if (preg_match('/\[qr_code\]/i', $order_recived_message)) {
-            $order_recived_message = preg_replace('/\[qr_code\]/i', $qr_code_html, $order_recived_message, 1);
-        } else {
-            $order_recived_message .= sprintf('<p>%s</p>', $qr_code_html);
-        }
-
-        if (preg_match('/\[text_code\]/i', $order_recived_message)) {
-            $order_recived_message = preg_replace('/\[text_code\]/i', $qr_code, $order_recived_message, 1);
-        }
-
-        if (preg_match('/\[expiration_date\]/i', $order_recived_message)) {
-            $order_recived_message = preg_replace('/\[expiration_date\]/i', date('d/m/Y H:i:s', strtotime($expiration_date)), $order_recived_message, 1);
-        }
-
         esc_html_e($order_recived_message);
 ?>
 
