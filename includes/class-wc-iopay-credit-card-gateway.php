@@ -335,7 +335,8 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
      * Payment fields.
      */
     public function payment_fields() {
-        if ($description = $this->get_description()) {
+        $description = $this->get_description();
+        if ( ! empty($description)) {
             echo wp_kses_post(wpautop(wptexturize($description)));
         }
         $cart_total = $this->get_order_total();
