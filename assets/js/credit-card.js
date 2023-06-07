@@ -1,6 +1,57 @@
 /* global wcIopayParams, IoPay */
 (function ($) {
 
+    function validateHolderName(holderName) {
+        var validateHolderName = /\w{3,}/.test(holderName)
+
+        return validateHolderName
+    }
+
+    function validateCardCVV(cardCVV) {
+        var validateCardCVV = /\d{3,}/.test(cardCVV)
+
+        return validateCardCVV
+    }
+
+    function validateCardnum(cardNumber) {
+        var validateCardnum = /\d{12,}/.test(cardNumber)
+
+        return validateCardnum
+    }
+
+    function validateExpMonth(expirationMonth) {
+        var validateExpMonth = /\d{2,}/.test(expirationMonth)
+
+        if (validateExpMonth) {
+            expirationMonth = parseInt(expirationMonth)
+
+            if (expirationMonth > 0 && expirationMonth < 13) {
+                return true
+            }
+
+            return false
+        }
+
+        return false
+    }
+
+    function validateExpYear(expirationYear) {
+        var validateExpYear = /\d{2,}/.test(expirationYear)
+
+        if (validateExpYear) {
+            var actualYear = new Date().getFullYear()
+            expirationYear = parseInt(actualYear.toString().substr(0, 2) + expirationYear)
+
+            if (expirationYear > actualYear) {
+                return true
+            }
+
+            return false
+        }
+
+        return false
+    }
+
     $(function () {
 
         $('body').on('click', '#iopay-card-number', function () {
@@ -62,7 +113,48 @@
                 var cardNumber = $('#iopay-card-number', form).val().replace(/[^\d]/g, '');
                 var cardCVV = $('#iopay-card-cvc', form).val();
 
-                $.ajax({
+                var validateHolderName = /\w{3,}/.test(holderName)
+                var validateExpMonth = /\d{2,}/.test(expirationMonth)
+                var validateExpYear = /\d{2,}/.test(expirationYear)
+                var validateCardnum = /\d{12,}/.test(cardNumber)
+                var validateCardCVV = /\d{3,}/.test(cardCVV)
+
+                // TODO retirar logs
+                console.log('holder: ' + validateHolderName + ' - ' + holderName)
+                console.log('exp month: ' + validateExpMonth + ' - ' + expirationMonth)
+                console.log('exp year: ' + validateExpYear + ' - ' + expirationYear)
+                console.log('card num: ' + validateCardnum + ' - ' + cardNumber)
+                console.log('card cvv: ' + validateCardCVV + ' - ' + cardCVV)
+
+                if (!validateHolderName(holderName)) {
+                    alert('Campo do titular do cartão inválido')
+
+                    return false
+                } else if (!validateExpMonth(expirationMonth)) {
+                    alert('Mês da data de expiração inválida')
+
+                    return false
+                } else if (!validateExpYear(expirationYear)) {
+                    alert('Ano da data de expiração inválido')
+
+                    return false
+                } else if (!validateCardnum(cardNumber)) {
+                    alert('Número de cartão de crédito inválido')
+
+                    return false
+                } else if (!validateCardCVV(cardCVV)) {
+                    alert('CVV inválido')
+
+                    return false
+                } else {
+
+                }
+
+                alert('validações poxa')
+
+                return false
+
+                /* $.ajax({
                     url: url,
                     data: {
                         holder_name: holderName,
@@ -127,7 +219,7 @@
                     },
                     type: 'POST',
                     contentType: 'application/x-www-form-urlencoded'
-                });
+                }); */
 
             });
 
