@@ -415,6 +415,7 @@ class WC_Iopay_API {
 
         if ('iopay-credit-card' === $this->gateway->id) {
             $installment = sanitize_text_field($_POST['iopay_installments']);
+            $installment = ('0' === $installment) ? '1' : $installment;
             $destino = 'interest_rate_installment_' . $installment;
             ${$destino} = $destino;
 
