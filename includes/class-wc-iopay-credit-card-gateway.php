@@ -160,6 +160,12 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                     'required' => 'required',
                 ),
             ),
+            'antifraude' => array(
+                'title' => __('Antifraud Public Key', 'woocommerce-iopay'),
+                'type' => 'password',
+                'description' => __('If your plan has anti-fraud, put your public key here.', 'woocommerce-iopay'),
+                'desc_tip' => false,
+            ),
             'register_refused_order' => array(
                 'title' => __('Register Refused Order', 'woocommerce-iopay'),
                 'type' => 'checkbox',
@@ -255,12 +261,6 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                 'type' => 'text',
                 'default' => '0',
             ),
-            'antifraude' => array(
-                'title' => __('Antifraud Public Key', 'woocommerce-iopay'),
-                'type' => 'password',
-                'description' => __('If your plan has anti-fraud, put your public key here.', 'woocommerce-iopay'),
-                'desc_tip' => false,
-            ),
             'testing' => array(
                 'title' => __('Gateway Testing', 'woocommerce-iopay'),
                 'type' => 'title',
@@ -335,7 +335,8 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
      * Payment fields.
      */
     public function payment_fields() {
-        if ($description = $this->get_description()) {
+        $description = $this->get_description();
+        if ( ! empty($description)) {
             echo wp_kses_post(wpautop(wptexturize($description)));
         }
         $cart_total = $this->get_order_total();

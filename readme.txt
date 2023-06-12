@@ -5,7 +5,7 @@ Tags: woocommerce, iopay, payment, pix
 Requires at least: 5.7
 Tested up to: 6.2
 Requires PHP: 7.0
-Stable tag: 1.1.4
+Stable tag: 1.1.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,6 +83,15 @@ It is possible to remove the address, company and telephone fields, keeping only
 1. none
 
 == Changelog ==
+
+= 1.1.5 =
+**12/06/2023**
+* Fixed CPF/CNPJ detection bug;
+* Fixed unrecognized delivery fields bug;
+* Added IoPay customer saving by WordPress registration;
+* Added attribute escaping to templates;
+* Improved clarity of plugin settings;
+* Improved payment input validation.
 
 = 1.1.4 =
 **30/05/2023**

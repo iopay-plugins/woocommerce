@@ -13,7 +13,7 @@ if (false == $paid) {
 <div class="text-center">
 
     <div id="successPixPaymentBox"
-        style="display: <?php echo $paid ? 'block' : 'none'; ?>;">
+        style="display: <?php esc_attr_e($paid ? 'block' : 'none'); ?>;">
         <h4>Obrigado pelo pagamento!</h4>
         <svg id="successAnimation" class="animated" xmlns="http://www.w3.org/2000/svg" width="180" height="180"
             viewBox="0 0 70 70">
@@ -26,23 +26,23 @@ if (false == $paid) {
         </svg>
     </div>
     <div id="watingPixPaymentBox"
-        style="display: <?php echo $paid ? 'none' : 'block'; ?>;">
+        style="display: <?php esc_attr_e($paid ? 'none' : 'block'); ?>;">
 
         <?php
 
         switch ($status) {
             case 'pre_authorized':
-                _e('Payment under review.', 'woocommerce-iopay');
+                esc_html_e('Payment under review.', 'woocommerce-iopay');
 
                 break;
 
             case 'failed':
-                _e('Payment failed, please contact our call center, or try again later.', 'woocommerce-iopay');
+                esc_html_e('Payment failed, please contact our call center, or try again later.', 'woocommerce-iopay');
 
                 break;
 
             default:
-                _e('There was an error with your payment.', 'woocommerce-iopay');
+                esc_html_e('There was an error with your payment.', 'woocommerce-iopay');
 
                 break;
         }

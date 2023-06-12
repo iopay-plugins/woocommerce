@@ -1,28 +1,36 @@
 # Changelog
 
+### v1.1.5 - 12/06/2023
+* Corrigido de bug de detecção de CPF/CNPJ;
+* Corrigido bug de campos de entrega não reconhecidos;
+* Adicionado salvamento de cliente da IoPay por cadastro do WordPress;
+* Adicionado escapamento de atributos aos templates;
+* Melhorada clareza de configurações do plugin;
+* Melhoria de validação de campos de pagamento.
+
 ### v1.1.4 - 30/05/2023
-* Correção de bug de transação não realizada para cliente sem cadastro.
+* Corrigido de bug de transação não realizada para cliente sem cadastro.
 
 ### v1.1.3 - 25/05/2023
-* Correção de bug de descrição de transação excedendo limite de 60 caracteres.
+* Corrigido de bug de descrição de transação excedendo limite de 60 caracteres.
 
 ### v1.1.2 - 18/05/2023
-* Alteração de nome de autor;
-* Retirar links de arquivo de tradução.
+* Alterado de nome de autor;
+* Retirado links de arquivo de tradução.
 
 ### v1.1.1 - 09/05/2023
-* Adição de espaço no título das configurações de juros da parcela;
-* Adição de sanitização e tratamento de atributos vazios;
-* Padronização do carregamento de scripts e estilização de acordo com normativas do WordPress;
-* Correção de traduções, adição de traduções faltantes e ajustes nos arquivos de tradução.
+* Adicionado de espaço no título das configurações de juros da parcela;
+* Adicionado sanitização e tratamento de atributos vazios;
+* Carregamento de scripts e estilização padronizados de acordo com normativas do WordPress;
+* Corrigido traduções, adicionada traduções faltantes e ajustes nos arquivos de tradução.
 
 ### v1.1.0 - 05/05/2023
-* Correção de bug de cartão de crédito sem parcelas configuradas;
-* Retirar funções depreciadas do PHP;
+* Corrigido de bug de cartão de crédito sem parcelas configuradas;
+* Retiradas funções depreciadas do PHP;
 * Melhoria do sistema de tratamento de erros do PHP;
 * URL de notificações da área administrativa corrigida;
 * Corrigido bug de função de registro de rota de notificações;
-* Adição de código de barras na cobrança com boleto bancário;
+* Adicionado de código de barras na cobrança com boleto bancário;
 * Melhoria de funções de notificações via webhook.
 ### v1.0.0 - 21/09/2022
 - Versão incial do plugin.

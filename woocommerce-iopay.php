@@ -6,7 +6,7 @@
  * Description: Gateway de pagamento IOPAY para WooCommerce.
  * Author: IoPay
  * Author URI: https://iopay.com.br/
- * Version: 1.1.4
+ * Version: 1.1.5
  * License: GPLv2 or later
  * Text Domain: woocommerce-iopay
  * Domain Path: /languages/.
@@ -25,7 +25,7 @@ if ( ! class_exists('WC_Iopay')) {
          *
          * @var string
          */
-        public const VERSION = '1.1.4';
+        public const VERSION = '1.1.5';
 
         /**
          * Instance of this class.
@@ -292,7 +292,6 @@ if ( ! class_exists('WC_Iopay')) {
          * @param string WP_REST_Request $request $type, $id, $reference_id
          */
         public function get_notification(WP_REST_Request $request) {
-            @ob_clean();
             $parameters = $request->get_params();
 
             $reference_id = (int) $parameters['reference_id'];

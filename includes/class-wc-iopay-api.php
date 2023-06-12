@@ -255,12 +255,13 @@ class WC_Iopay_API {
     /**
      * Generate the transaction data.
      *
-     * @param WC_Order $order  order data
-     * @param array    $posted form posted data
+     * @param WC_Order $order order data
      *
      * @return array transaction data
      */
     public function generate_transaction_data($order) {
+        $fullname = trim($order->billing_first_name . ' ' . $order->billing_last_name);
+
         // Set the request data.
         $data = array(
             'io_seller_id' => $this->gateway->api_key,
@@ -271,7 +272,7 @@ class WC_Iopay_API {
             'postback_url' => WC()->api_request_url(get_class($this->gateway)),
             'customer' => array(
                 'id' => $order->get_user_id(),
-                'name' => trim($order->billing_first_name . ' ' . $order->billing_last_name),
+                'name' => $fullname,
                 'email' => $order->billing_email,
             ),
             'metadata' => array(
@@ -279,12 +280,25 @@ class WC_Iopay_API {
             ),
         );
 
-        if (1 == $order->billing_persontype) {
-            $documento = $order->billing_cpf;
-            $customer_type = 'person_natural';
+        // Verify if client can select persontype
+        if (isset($order->billing_persontype)) {
+            if ('1' === $order->billing_persontype) {
+                $documento = $order->billing_cpf;
+                $customer_type = 'person_natural';
+            } else {
+                $documento = $order->billing_cnpj;
+                $customer_type = 'person_legal';
+            }
         } else {
-            $documento = $order->billing_cnpj;
-            $customer_type = 'person_legal';
+            // Client cannot select persontype
+            // Verify what input is filled
+            if (isset($order->billing_cpf) && ! empty($order->billing_cpf)) {
+                $documento = $order->billing_cpf;
+                $customer_type = 'person_natural';
+            } else {
+                $documento = $order->billing_cnpj;
+                $customer_type = 'person_legal';
+            }
         }
 
         if ( ! empty($order->billing_phone)) {
@@ -296,10 +310,15 @@ class WC_Iopay_API {
             $billing_phone = trim($ddd) . $number_phone;
         }
 
-        // TODO refactor iopay customer_id
-        $iopay_customer = false; // get_user_meta($order->get_user_id(), 'iopay_customer_'.$this->gateway->api_key);
+        $iopay_customer = get_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, true);
 
-        if ( ! $iopay_customer) {
+        // Delete invalid customer id
+        if (is_array($iopay_customer)) {
+            delete_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key);
+            $iopay_customer = '';
+        }
+
+        if (empty($iopay_customer)) {
             $endpoint = 'v1/customer/new';
             $data_customer = array(
                 'first_name' => $order->billing_first_name,
@@ -323,7 +342,7 @@ class WC_Iopay_API {
 
             $order->add_meta_data('iopay_customer_id', $iopay_customer['id'], true);
 
-            update_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, array_map('sanitize_text_field', $iopay_customer));
+            update_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, $iopay_customer['id']);
         }
 
         // TODO não inserir string de produtos já que o description tem limite de 60 caracteres
@@ -374,27 +393,12 @@ class WC_Iopay_API {
         }
 
         // Set the document number.
-        if (class_exists('Extra_Checkout_Fields_For_Brazil')) {
-            $wcbcf_settings = get_option('wcbcf_settings');
-            $person_type = (string) $wcbcf_settings['person_type'];
-            if ('0' !== $person_type) {
-                if (( '1' === $person_type && '1' === $order->billing_persontype ) || '2' === $person_type) {
-                    $data['customer']['document_number'] = $this->only_numbers($order->billing_cpf);
-                }
-
-                if (( '1' === $person_type && '2' === $order->billing_persontype ) || '3' === $person_type) {
-                    $data['customer']['name'] = $order->billing_company;
-                    $data['customer']['document_number'] = $this->only_numbers($order->billing_cnpj);
-                }
-            }
-        } else {
-            if ( ! empty($order->billing_cpf)) {
-                $data['customer']['document_number'] = $this->only_numbers($order->billing_cpf);
-            }
-            if ( ! empty($order->billing_cnpj)) {
-                $data['customer']['name'] = $order->billing_company;
-                $data['customer']['document_number'] = $this->only_numbers($order->billing_cnpj);
-            }
+        if ( ! empty($order->billing_cpf)) {
+            $data['customer']['document_number'] = $this->only_numbers($order->billing_cpf);
+        }
+        if ( ! empty($order->billing_cnpj)) {
+            $data['customer']['name'] = empty($order->billing_company) ? $fullname : $order->billing_company;
+            $data['customer']['document_number'] = $this->only_numbers($order->billing_cnpj);
         }
 
         // Set the customer gender.
@@ -411,6 +415,7 @@ class WC_Iopay_API {
 
         if ('iopay-credit-card' === $this->gateway->id) {
             $installment = sanitize_text_field($_POST['iopay_installments']);
+            $installment = ('0' === $installment) ? '1' : $installment;
             $destino = 'interest_rate_installment_' . $installment;
             ${$destino} = $destino;
 
@@ -472,14 +477,14 @@ class WC_Iopay_API {
                 $billing_cpf = sanitize_text_field($_POST['billing_cpf']) ?? '';
 
                 $taxpayer_id = str_replace(array('.', '-'), array('', ''), $billing_cpf);
-                $firstname = sanitize_text_field($_POST['shipping_first_name'] ?? $_POST['billing_first_name']);
-                $lastname = sanitize_text_field($_POST['shipping_last_name'] ?? $_POST['billing_last_name']);
-                $address_1 = sanitize_text_field($_POST['shipping_address_1'] ?? $_POST['billing_address_1']);
-                $address_2 = sanitize_text_field($_POST['shipping_number'] ?? $_POST['billing_number']);
-                $address_3 = sanitize_text_field($_POST['shipping_address_2'] ?? $_POST['billing_address_2']);
-                $postal_code = sanitize_text_field($_POST['shipping_postcode'] ?? $_POST['billing_postcode']);
-                $city = sanitize_text_field($_POST['shipping_city'] ?? $_POST['billing_city']);
-                $state = sanitize_text_field($_POST['shipping_state'] ?? $_POST['billing_state']);
+                $firstname = sanitize_text_field(empty($_POST['shipping_first_name']) ? $_POST['billing_first_name'] : $_POST['shipping_first_name']);
+                $lastname = sanitize_text_field(empty($_POST['shipping_last_name']) ? $_POST['billing_last_name'] : $_POST['shipping_last_name']);
+                $address_1 = sanitize_text_field(empty($_POST['shipping_address_1']) ? $_POST['billing_address_1'] : $_POST['shipping_address_1']);
+                $address_2 = sanitize_text_field(empty($_POST['shipping_number']) ? $_POST['billing_number'] : $_POST['shipping_number']);
+                $address_3 = sanitize_text_field(empty($_POST['shipping_address_2']) ? $_POST['billing_address_2'] : $_POST['shipping_address_2']);
+                $postal_code = sanitize_text_field(empty($_POST['shipping_postcode']) ? $_POST['billing_postcode'] : $_POST['shipping_postcode']);
+                $city = sanitize_text_field(empty($_POST['shipping_city']) ? $_POST['billing_city'] : $_POST['shipping_city']);
+                $state = sanitize_text_field(empty($_POST['shipping_state']) ? $_POST['billing_state'] : $_POST['shipping_state']);
                 $client_type = 'pf';
                 $phone_number = $billing_phone;
                 $antifraud_sessid = sanitize_text_field($_POST['session_id']);
@@ -517,7 +522,7 @@ class WC_Iopay_API {
                     'amount' => (int) number_format($order->get_total() * 100, 0, '', ''),
                     'currency' => 'BRL',
                     'description' => 'Compra produto pedido: ' . $order->get_id(),
-                    'statement_descriptor' => $setting['statement_descriptor'],
+                    'statement_descriptor' => empty($setting['statement_descriptor']) ? 'Compra com boleto bancario' : $setting['statement_descriptor'],
                     'io_seller_id' => $this->gateway->api_key,
                     'payment_type' => 'boleto',
                     'reference_id' => $order->get_order_number(),
@@ -537,7 +542,7 @@ class WC_Iopay_API {
                     'amount' => (int) number_format($order->get_total() * 100, 0, '', ''),
                     'currency' => 'BRL',
                     'description' => 'Compra produto pedido: ' . $order->get_id(),
-                    'statement_descriptor' => $setting['statement_descriptor'],
+                    'statement_descriptor' => empty($setting['statement_descriptor']) ? 'Compra com boleto bancario' : $setting['statement_descriptor'],
                     'io_seller_id' => $this->gateway->api_key,
                     'payment_type' => 'boleto',
                     'reference_id' => $order->get_order_number(),
@@ -611,7 +616,6 @@ class WC_Iopay_API {
      *
      * @param WC_Order $order order data
      * @param array    $args  transaction args
-     * @param string   $token checkout token
      *
      * @return array response data
      */
@@ -766,7 +770,13 @@ class WC_Iopay_API {
      * @return array request response
      */
     protected function do_request($data = array(), $order) {
-        $iopay_customer_id = $order->get_meta('iopay_customer_id');
+        // Client is logged in
+        $iopay_customer_id = get_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, true);
+
+        // Client is not logged in
+        if (empty($iopay_customer_id)) {
+            $iopay_customer_id = $order->get_meta('iopay_customer_id', true);
+        }
 
         if ('boleto' == $data['payment_method']) {
             $data = $data['data_boleto'];
@@ -904,6 +914,8 @@ class WC_Iopay_API {
 
             $data = wp_remote_retrieve_body($result);
             $data = json_decode($data);
+
+            $this->gateway->log->add($this->gateway->id, 'Failed to make the transaction - request: ' . var_export($data, true) . \PHP_EOL . ' HEADERS: ' . var_export($header, true) . \PHP_EOL . ' BODY: ' . var_export($post, true) . \PHP_EOL . ' URL: ' . var_export($url, true));
 
             if (isset($data->success)) {
                 return (array) $data->success;

@@ -36,7 +36,7 @@ if ( ! defined('ABSPATH')) {
             for="iopay-card-expiry"><?php esc_html_e('Expiry (MM/YY)', 'woocommerce-iopay'); ?>
             <span class="required">*</span></label>
         <input id="iopay-card-expiry" class="input-text wc-credit-card-form-card-expiry" type="text" autocomplete="off"
-            placeholder="<?php esc_html_e('MM / YY', 'woocommerce-iopay'); ?>"
+            placeholder="<?php esc_attr_e('MM / YY', 'woocommerce-iopay'); ?>"
             style="font-size: 1.5em; padding: 8px;" />
     </p>
     <p class="form-row form-row-last">
@@ -45,7 +45,7 @@ if ( ! defined('ABSPATH')) {
             <span class="required">*</span></label>
         <input id="iopay-card-cvc" class="input-text wc-credit-card-form-card-cvc" maxlength="4" type="text"
             autocomplete="off"
-            placeholder="<?php esc_html_e('CVC', 'woocommerce-iopay'); ?>"
+            placeholder="<?php esc_attr_e('CVC', 'woocommerce-iopay'); ?>"
             style="font-size: 1.5em; padding: 8px;" />
     </p>
     <div class="clear"></div>
@@ -53,7 +53,6 @@ if ( ! defined('ABSPATH')) {
 
 
     <?php
-//  var_dump($installment);
 
 if (apply_filters('wc_iopay_allow_credit_card_installments', 1 < $max_installment)) :
     ?>
@@ -78,12 +77,12 @@ if (apply_filters('wc_iopay_allow_credit_card_installments', 1 < $max_installmen
             $parcelado = $installments['amount'] / $installment;
         }
 
-        //  $interest = ( ( $cart_total * 100 ) < $installment['amount'] ) ? sprintf(__('(total of %s)', 'woocommerce-iopay'), strip_tags(wc_price($installment['amount'] / 100))) : __('(interest-free)', 'woocommerce-iopay');
-        // $installment_amount = strip_tags( wc_price( $installment['amount'] / $installment['interest_rate'] ) * 100 );
         ?>
-            <option value="<?php echo absint($installment); ?>">
-                <?php echo $installment; ?> -
-                <?php echo wc_price($parcelado); ?></option>
+            <option
+                value="<?php esc_attr_e(absint($installment)); ?>">
+                <?php esc_html_e($installment); ?> -
+                <?php echo wp_kses_post(wc_price($parcelado)); ?>
+            </option>
             <?php } ?>
         </select>
     </p>

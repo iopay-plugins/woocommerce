@@ -1,3 +1,7 @@
+.iopay-input-error {
+    border-color: red !important;
+}
+
 .qrcode-copyed {
     box-shadow: 2px 2px 3px #e1e1e1;
     border-radius: 5px;
