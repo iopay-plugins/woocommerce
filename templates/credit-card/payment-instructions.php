@@ -32,17 +32,17 @@ if (false == $paid) {
 
         switch ($status) {
             case 'pre_authorized':
-                _e('Payment under review.', 'woocommerce-iopay');
+                esc_html_e('Payment under review.', 'woocommerce-iopay');
 
                 break;
 
             case 'failed':
-                _e('Payment failed, please contact our call center, or try again later.', 'woocommerce-iopay');
+                esc_html_e('Payment failed, please contact our call center, or try again later.', 'woocommerce-iopay');
 
                 break;
 
             default:
-                _e('There was an error with your payment.', 'woocommerce-iopay');
+                esc_html_e('There was an error with your payment.', 'woocommerce-iopay');
 
                 break;
         }
