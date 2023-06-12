@@ -1,11 +1,12 @@
 # Changelog
 
-### v1.1.5 - 02/06/2023
+### v1.1.5 - 12/06/2023
 * Corrigido de bug de detecção de CPF/CNPJ;
 * Corrigido bug de campos de entrega não reconhecidos;
 * Adicionado salvamento de cliente da IoPay por cadastro do WordPress;
 * Adicionado escapamento de atributos aos templates;
-* Melhorada clareza de configurações do plugin.
+* Melhorada clareza de configurações do plugin;
+* Melhoria de validação de campos de pagamento.
 
 ### v1.1.4 - 30/05/2023
 * Corrigido de bug de transação não realizada para cliente sem cadastro.
