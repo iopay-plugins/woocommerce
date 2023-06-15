@@ -98,53 +98,91 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
         add_action( 'wps_sfw_subscription_cancel', array($this, 'cancel_subscription'), 10, 2 );
     }
 
-        /**
-         * This function is add a supported payment gateway.
-         *
-         * @param array  $supported_payment_method supported_payment_method
-         * @param string $payment_method           payment_method
-         *
-         * @since    1.2.0
-         */
-        public function add_subscription_support($supported_payment_method, $payment_method) {
-            if ( $this->id === $payment_method ) {
-                $supported_payment_method[] = $payment_method;
-            }
-
-            return $supported_payment_method;
+    /**
+     * This function is add a supported payment gateway.
+     *
+     * @param array  $supported_payment_method supported_payment_method
+     * @param string $payment_method           payment_method
+     *
+     * @since    1.2.0
+     */
+    public function add_subscription_support($supported_payment_method, $payment_method) {
+        if ( $this->id === $payment_method ) {
+            $supported_payment_method[] = $payment_method;
         }
 
-        /**
-         * Process subscription payment.
-         *
-         * @param object $order           order
-         * @param int    $subscription_id subscription_id
-         * @param string $payment_method  payment_method
-         *
-         * @since    1.2.0
-         */
-        public function process_subscription_payment($order, $subscription_id, $payment_method) {
-            // TODO lógica de processamento de recorrência
-        }
+        return $supported_payment_method;
+    }
 
-        /**
-         * This function is used to cancel subscriptions status.
-         *
-         * @param string $wps_subscription_id wps_subscription_id
-         * @param string $status              status
-         *
-         * @since 1.2.0
-         */
-        public function cancel_subscription($wps_subscription_id, $status) {
-            // TODO verificar função de cancelamento de recorrência
-            $wps_payment_method = get_post_meta( $wps_subscription_id, '_payment_method', true );
-            if ( $this->id === $wps_payment_method ) {
-                if ( 'Cancel' === $status ) {
-                    wps_sfw_send_email_for_cancel_susbcription( $wps_subscription_id );
-                    update_post_meta( $wps_subscription_id, 'wps_subscription_status', 'cancelled' );
+    /**
+     * Process subscription payment.
+     *
+     * @param object $order           order
+     * @param int    $subscription_id subscription_id
+     * @param string $payment_method  payment_method
+     *
+     * @since    1.2.0
+     */
+    public function process_subscription_payment($order, $subscription_id, $payment_method) {
+        // TODO lógica de processamento de recorrência
+        if ( $order && is_object( $order ) ) {
+            $order_id = $order->get_id();
+            $payment_method = get_post_meta( $order_id, '_payment_method', true );
+            $wps_sfw_renewal_order = get_post_meta( $order_id, 'wps_sfw_renewal_order', true );
+            $wps_payment_method = get_post_meta( $subscription_id, '_payment_method', true );
+
+            $arr = array(
+                'order_now' => $order_id,
+                'paymethod_now' => $payment_method,
+                'renewal_order' => $wps_sfw_renewal_order,
+                'paymethod_old' => $wps_payment_method,
+            );
+
+            $this->log->add($this->id, '[DEBUG SUBSCRIPTION]: ' . var_export($arr, true) . \PHP_EOL);
+
+            return true;
+            /* if ( $this->id === $payment_method && 'yes' === $wps_sfw_renewal_order ) {
+                $wps_parent_order_id = get_post_meta( $subscription_id, 'wps_parent_order', true );
+
+                if ( true ) { // TODO pegar chaves de API e só vai? pegar funções da API?
+                    $card_token = get_post_meta( $wps_parent_order_id, 'wps_order_card_token', true );
+
+                    // TODO adicionar card token
+                    // update_post_meta( $order->get_id(), 'wps_order_card_token', $cardToken );
+
+                    if ( empty( $card_token ) ) {
+                        $order_notes = __( 'payment token not found', 'subscriptions-for-woocommerce' );
+                        $order->update_status( 'failed', $order_notes );
+
+                        return;
+                    }
+
+                // TODO processar pagamento com classe de api
+                } else {
+                    $order->update_status( 'failed', esc_html__( 'WPS Paypal is not setup', 'subscriptions-for-woocommerce' ) );
                 }
+            } */
+        }
+    }
+
+    /**
+     * This function is used to cancel subscriptions status.
+     *
+     * @param string $wps_subscription_id wps_subscription_id
+     * @param string $status              status
+     *
+     * @since 1.2.0
+     */
+    public function cancel_subscription($wps_subscription_id, $status) {
+        // TODO verificar função de cancelamento de recorrência
+        $wps_payment_method = get_post_meta( $wps_subscription_id, '_payment_method', true );
+        if ( $this->id === $wps_payment_method ) {
+            if ( 'Cancel' === $status ) {
+                wps_sfw_send_email_for_cancel_susbcription( $wps_subscription_id );
+                update_post_meta( $wps_subscription_id, 'wps_subscription_status', 'cancelled' );
             }
         }
+    }
 
     /**
      * Admin page.
@@ -431,6 +469,8 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
      * @return array redirect data
      */
     public function process_payment($order_id) {
+        $this->log->add($this->id, '[DEBUG] POST: ' . var_export($_POST, true) . \PHP_EOL . ' [GET] - ' . var_export($_GET, true) . \PHP_EOL);
+
         return $this->api->process_regular_payment($order_id);
     }
 
