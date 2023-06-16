@@ -124,44 +124,29 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
      * @since    1.2.0
      */
     public function process_subscription_payment($order, $subscription_id, $payment_method) {
-        // TODO lógica de processamento de recorrência
         if ( $order && is_object( $order ) ) {
             $order_id = $order->get_id();
             $payment_method = get_post_meta( $order_id, '_payment_method', true );
             $wps_sfw_renewal_order = get_post_meta( $order_id, 'wps_sfw_renewal_order', true );
-            $wps_payment_method = get_post_meta( $subscription_id, '_payment_method', true );
+            $this->log->add($this->id, '[DEBUG] IS SUBSCRIPTION VALID : ' . var_export(wps_sfw_check_valid_subscription($subscription_id), true) );
 
-            $arr = array(
-                'order_now' => $order_id,
-                'paymethod_now' => $payment_method,
-                'renewal_order' => $wps_sfw_renewal_order,
-                'paymethod_old' => $wps_payment_method,
-            );
-
-            $this->log->add($this->id, '[DEBUG SUBSCRIPTION]: ' . var_export($arr, true) . \PHP_EOL);
-
-            return true;
-            /* if ( $this->id === $payment_method && 'yes' === $wps_sfw_renewal_order ) {
+            if ( $this->id === $payment_method && 'yes' === $wps_sfw_renewal_order ) {
                 $wps_parent_order_id = get_post_meta( $subscription_id, 'wps_parent_order', true );
+                $card_token = get_post_meta( $wps_parent_order_id, 'wps_order_card_token', true );
 
-                if ( true ) { // TODO pegar chaves de API e só vai? pegar funções da API?
-                    $card_token = get_post_meta( $wps_parent_order_id, 'wps_order_card_token', true );
-
-                    // TODO adicionar card token
-                    // update_post_meta( $order->get_id(), 'wps_order_card_token', $cardToken );
-
-                    if ( empty( $card_token ) ) {
-                        $order_notes = __( 'payment token not found', 'subscriptions-for-woocommerce' );
-                        $order->update_status( 'failed', $order_notes );
-
-                        return;
+                if ( empty( $card_token ) ) {
+                    if ('yes' === $this->debug) {
+                        $this->log->add($this->id, 'Doing a recurring transaction for order ' . $order_id . '...' . \PHP_EOL . ' Transaction failed no card token found in subscription');
                     }
 
-                // TODO processar pagamento com classe de api
-                } else {
-                    $order->update_status( 'failed', esc_html__( 'WPS Paypal is not setup', 'subscriptions-for-woocommerce' ) );
+                    $order_notes = __( 'card token not found', 'woocommerce-iopay' );
+                    $order->update_status( 'failed', $order_notes );
+
+                    return;
                 }
-            } */
+
+                $this->api->process_recurring_payment($order_id, $card_token);
+            }
         }
     }
 

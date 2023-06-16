@@ -252,6 +252,309 @@ class WC_Iopay_API {
         return $max;
     }
 
+    public function generate_transaction_data_recurring($order, $card_token) {
+        $fullname = trim($order->billing_first_name . ' ' . $order->billing_last_name);
+
+        // Set the request data.
+        $data = array(
+            'io_seller_id' => $this->gateway->api_key,
+            'encryption_key' => $this->gateway->encryption_key,
+            'currency' => 'BRL',
+            'email' => $this->gateway->email_auth,
+            'amount' => $order->get_total() * 100,
+            'postback_url' => WC()->api_request_url(get_class($this->gateway)),
+            'customer' => array(
+                'id' => $order->get_user_id(),
+                'name' => $fullname,
+                'email' => $order->billing_email,
+            ),
+            'metadata' => array(
+                'order_number' => $order->get_order_number(),
+            ),
+        );
+
+        // Verify if client can select persontype
+        if (isset($order->billing_persontype)) {
+            if ('1' === $order->billing_persontype) {
+                $documento = $order->billing_cpf;
+                $customer_type = 'person_natural';
+            } else {
+                $documento = $order->billing_cnpj;
+                $customer_type = 'person_legal';
+            }
+        } else {
+            // Client cannot select persontype
+            // Verify what input is filled
+            if (isset($order->billing_cpf) && ! empty($order->billing_cpf)) {
+                $documento = $order->billing_cpf;
+                $customer_type = 'person_natural';
+            } else {
+                $documento = $order->billing_cnpj;
+                $customer_type = 'person_legal';
+            }
+        }
+
+        if ( ! empty($order->billing_phone)) {
+            $phone_aux = $order->billing_phone;
+
+            $ddd = substr($phone_aux, 0, 5);
+            $number_phone = substr($phone_aux, 5);
+
+            $billing_phone = trim($ddd) . $number_phone;
+        }
+
+        $iopay_customer = get_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, true);
+
+        // Delete invalid customer id
+        if (is_array($iopay_customer)) {
+            delete_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key);
+            $iopay_customer = '';
+        }
+
+        if (empty($iopay_customer)) {
+            $endpoint = 'v1/customer/new';
+            $data_customer = array(
+                'first_name' => $order->billing_first_name,
+                'last_name' => $order->billing_last_name,
+                'email' => $order->billing_email,
+                'taxpayer_id' => $documento,
+                'phone_number' => $billing_phone,
+                'customer_type' => $customer_type,
+                'address' => array(
+                    'line1' => $order->billing_address_1,
+                    'line2' => $order->billing_number,
+                    'line3' => $order->billing_address_2,
+                    'neighborhood' => $order->billing_neighborhood,
+                    'city' => $order->billing_city,
+                    'state' => $order->billing_state,
+                    'postal_code' => $order->billing_postcode,
+                ),
+            );
+
+            $iopay_customer = $this->iopayRequest($this->get_api_url() . $endpoint, $data_customer);
+
+            $order->add_meta_data('iopay_customer_id', $iopay_customer['id'], true);
+
+            update_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, $iopay_customer['id']);
+        }
+
+        // TODO não inserir string de produtos já que o description tem limite de 60 caracteres
+        // talvez colocar nome da loja ou configuração definida para o cliente inserir?
+        // $string_produtos = '';
+
+        foreach ($order->get_items() as $item) {
+            $dados_item = $item->get_data();
+
+            $items[] = array(
+                'name' => trim($dados_item['name']),
+                'code' => (string) $item->get_product_id(),
+                'amount' => (int) number_format($dados_item['total'] / $dados_item['quantity'], 0, '', ''),
+                'quantity' => $dados_item['quantity'],
+            );
+
+            // $string_produtos .= 'Compra Produto: ' . trim($dados_item['name']) . ' - ';
+        }
+
+        $data['products'] = $items;
+
+        if ( ! empty($order->billing_phone)) {
+            $phone = $this->only_numbers($order->billing_phone);
+
+            $data['customer']['phone'] = array(
+                'ddd' => substr($phone, 0, 2),
+                'number' => substr($phone, 2),
+            );
+
+            $billing_phone = '(' . substr($phone, 0, 2) . ')' . substr($phone, 2);
+        }
+
+        // Address.
+        if ( ! empty($order->billing_address_1)) {
+            $data['customer']['address'] = array(
+                'street' => $order->billing_address_1,
+                'complementary' => $order->billing_address_2,
+                'zipcode' => $this->only_numbers($order->billing_postcode),
+            );
+
+            // Non-WooCommerce default address fields.
+            if ( ! empty($order->billing_number)) {
+                $data['customer']['address']['street_number'] = $order->billing_number;
+            }
+            if ( ! empty($order->billing_neighborhood)) {
+                $data['customer']['address']['neighborhood'] = $order->billing_neighborhood;
+            }
+        }
+
+        // Set the document number.
+        if ( ! empty($order->billing_cpf)) {
+            $data['customer']['document_number'] = $this->only_numbers($order->billing_cpf);
+        }
+        if ( ! empty($order->billing_cnpj)) {
+            $data['customer']['name'] = empty($order->billing_company) ? $fullname : $order->billing_company;
+            $data['customer']['document_number'] = $this->only_numbers($order->billing_cnpj);
+        }
+
+        // Set the customer gender.
+        if ( ! empty($order->billing_sex)) {
+            $data['customer']['sex'] = strtoupper(substr($order->billing_sex, 0, 1));
+        }
+
+        // Set the customer birthdate.
+        if ( ! empty($order->billing_birthdate)) {
+            $birthdate = explode('/', $order->billing_birthdate);
+
+            $data['customer']['born_at'] = $birthdate[1] . '-' . $birthdate[0] . '-' . $birthdate[2];
+        }
+
+        if ('iopay-credit-card' === $this->gateway->id) {
+            $installment = '1';
+            $destino = 'interest_rate_installment_' . $installment;
+            ${$destino} = $destino;
+
+            $interest_rate = $this->gateway->${$destino};
+
+            $total_juros = $order->get_total();
+            $total_sem_juros = 0;
+
+            if ($interest_rate > 0) {
+                // $total_parcela = $order->get_total() / $installment;
+                // $tax = ((($order->get_total()) * $interest_rate) / 100);
+                $total_juros = ((($order->get_total() * $interest_rate) / 100) + $order->get_total());
+                $total_sem_juros = $total_juros - $order->get_total();
+            }
+
+            // Set up the Item Fee
+            $fee = new WC_Order_Item_Fee();
+
+            // Give the Fee a name e.g. Discount
+            $fee->set_name('Acréscimo cartão de crédito');
+
+            // Set the Fee
+            $fee->set_total($total_sem_juros);
+
+            // Add to the Order
+            $order->add_item($fee);
+
+            // Recalculate the totals. IMPORTANT!
+            $order->calculate_totals();
+
+            // Save the Order
+            $order->save();
+
+            $data['payment_method'] = 'credit';
+            $setting = $this->gateway->settings;
+
+            $data['data_creditcard'] = array(
+                'amount' => number_format($total_juros * 100, 0, '', ''),
+                'currency' => 'BRL',
+                'description' => 'Compra produto pedido: ' . $order->get_id(),
+                'token' => $card_token,
+                'capture' => 1,
+                'statement_descriptor' => 'Compra com cartao',
+                'installment_plan' => array('number_installments' => (int) $installment),
+                'io_seller_id' => $this->gateway->api_key,
+                'payment_type' => 'credit',
+                'reference_id' => $order->get_order_number(),
+                'products' => $items,
+            );
+
+            if ( ! empty($setting['antifraude'])) {
+                $ddd = substr($order->billing_phone, 0, 5);
+                $number_phone = substr($order->billing_phone, 5);
+
+                $billing_phone = trim($ddd) . $number_phone;
+                $billing_cpf = $order->billing_cpf ?? '';
+
+                $taxpayer_id = str_replace(array('.', '-'), array('', ''), $billing_cpf);
+                $firstname = empty($order->shipping_first_name) ? $order->billing_first_name : $order->shipping_first_name;
+                $lastname = empty($order->shipping_last_name) ? $order->billing_last_name : $order->shipping_last_name;
+                $address_1 = empty($order->shipping_address_1) ? $order->billing_address_1 : $order->shipping_address_1;
+                $address_2 = empty($order->shipping_number) ? $order->billing_number : $order->shipping_number;
+                $address_3 = empty($order->shipping_address_2) ? $order->billing_address_2 : $order->shipping_address_2;
+                $postal_code = empty($order->shipping_postcode) ? $order->billing_postcode : $order->shipping_postcode;
+                $city = empty($order->shipping_city) ? $order->billing_city : $order->shipping_city;
+                $state = empty($order->shipping_state) ? $order->billing_state : $order->shipping_state;
+                $client_type = 'pf';
+                $phone_number = $billing_phone;
+                $antifraud_sessid = date('YmdHis') . sha1(rand(1, 30));
+
+                $shipping = array(
+                    'taxpayer_id' => (string) trim($taxpayer_id),
+                    'firstname' => (string) $firstname,
+                    'lastname' => (string) $lastname,
+                    'address_1' => (string) $address_1,
+                    'address_2' => (string) $address_2,
+                    'address_3' => (string) $address_3,
+                    'postal_code' => $postal_code,
+                    'city' => $city,
+                    'state' => $state,
+                    'client_type' => $client_type,
+                    'phone_number' => $phone_number,
+                );
+
+                $data['data_creditcard']['antifraud_sessid'] = $antifraud_sessid;
+                $data['data_creditcard']['shipping'] = $shipping;
+            }
+        } elseif ('iopay-banking-ticket' === $this->gateway->id) {
+            $data['payment_method'] = 'boleto';
+            $setting = $this->gateway->settings;
+            $expiration_date = date('Y-m-d', strtotime('+3 days', strtotime(date('Y-m-d'))));
+            $interest_value = (float) str_replace(',', '.', $setting['interest_rate_value'] ?? '0');
+            $late_fee_value = (float) str_replace(',', '.', $setting['late_fee_value'] ?? '0');
+
+            if ($setting['expiration_date'] > 0) {
+                $expiration_date = date('Y-m-d', strtotime('+' . $setting['expiration_date'] . ' days', strtotime(date('Y-m-d'))));
+            }
+
+            if ($interest_value > 0) {
+                $data['data_boleto'] = array(
+                    'amount' => (int) number_format($order->get_total() * 100, 0, '', ''),
+                    'currency' => 'BRL',
+                    'description' => 'Compra produto pedido: ' . $order->get_id(),
+                    'statement_descriptor' => empty($setting['statement_descriptor']) ? 'Compra com boleto bancario' : $setting['statement_descriptor'],
+                    'io_seller_id' => $this->gateway->api_key,
+                    'payment_type' => 'boleto',
+                    'reference_id' => $order->get_order_number(),
+                    'products' => $items,
+                    'expiration_date' => $expiration_date,
+                    'interest' => array(
+                        'mode' => 'daily_percentage',
+                        'value' => number_format($interest_value, 2, '.', ''),
+                    ),
+                    'late_fee' => array(
+                        'mode' => 'percentage',
+                        'value' => number_format($late_fee_value, 2, '.', ''),
+                    ),
+                );
+            } else {
+                $data['data_boleto'] = array(
+                    'amount' => (int) number_format($order->get_total() * 100, 0, '', ''),
+                    'currency' => 'BRL',
+                    'description' => 'Compra produto pedido: ' . $order->get_id(),
+                    'statement_descriptor' => empty($setting['statement_descriptor']) ? 'Compra com boleto bancario' : $setting['statement_descriptor'],
+                    'io_seller_id' => $this->gateway->api_key,
+                    'payment_type' => 'boleto',
+                    'reference_id' => $order->get_order_number(),
+                    'products' => $items);
+            }
+        } elseif ('iopay-pix' === $this->gateway->id) {
+            $data['payment_method'] = 'pix';
+            $setting = $this->gateway->settings;
+
+            $data['data_pix'] = array(
+                'amount' => (int) number_format($order->get_total() * 100, 0, '', ''),
+                'currency' => 'BRL',
+                'description' => 'Compra produto pedido: ' . $order->get_id(),
+                'io_seller_id' => $this->gateway->api_key,
+                'payment_type' => 'pix',
+                'reference_id' => $order->get_order_number(),
+            );
+        }
+
+        // Add filter for Third Party plugins.
+        return apply_filters('wc_iopay_transaction_data', $data, $order);
+    }
+
     /**
      * Generate the transaction data.
      *
@@ -261,6 +564,7 @@ class WC_Iopay_API {
      */
     public function generate_transaction_data($order) {
         $fullname = trim($order->billing_first_name . ' ' . $order->billing_last_name);
+        $hasRecurrency = sanitize_text_field($_POST['wsp_recurring']);
 
         // Set the request data.
         $data = array(
@@ -452,6 +756,12 @@ class WC_Iopay_API {
             $data['payment_method'] = 'credit';
             $setting = $this->gateway->settings;
             $token = sanitize_text_field($_POST['token']);
+
+            // If has recurrency save cardtoken
+            if ('yes' === $hasRecurrency) {
+                // $this->gateway->log->add($this->gateway->id, '[DEBUG] card token : ' . var_export($token, true) . ' [subscription_id]: ' . \PHP_EOL . var_export($order->get_meta('subscription_id',true), true) . \PHP_EOL . ' [ORDER] ' . var_export($order->get_id(), true));
+                update_post_meta( $order->get_id(), 'wc_iopay_order_card_token', true );
+            }
 
             $data['data_creditcard'] = array(
                 'amount' => number_format($total_juros * 100, 0, '', ''),
@@ -651,6 +961,39 @@ class WC_Iopay_API {
     public function process_regular_payment($order_id) {
         $order = wc_get_order($order_id);
         $data = $this->generate_transaction_data($order);
+        $transaction = $this->do_transaction($order, $data);
+
+        if ( ! empty($transaction['error'])) {
+            wc_add_notice($transaction['error']->message, 'error');
+
+            return array(
+                'result' => 'fail',
+            );
+        }
+
+        $this->save_order_meta_fields($order_id, $transaction);
+        $this->process_order_status($order, $transaction['status']);
+        // Empty the cart.
+        WC()->cart->empty_cart();
+
+        // Redirect to thanks page.
+        return array(
+            'result' => 'success',
+            'redirect' => $this->gateway->get_return_url($order),
+        );
+    }
+
+    /**
+     * Process recurring payment.
+     *
+     * @param int    $order_id   order ID
+     * @param string $card_token
+     *
+     * @return array redirect data
+     */
+    public function process_recurring_payment($order_id, $card_token = '') {
+        $order = wc_get_order($order_id);
+        $data = $this->generate_transaction_data_recurring($order, $card_token);
         $transaction = $this->do_transaction($order, $data);
 
         if ( ! empty($transaction['error'])) {
