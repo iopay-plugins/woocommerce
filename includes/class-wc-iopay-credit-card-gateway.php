@@ -131,8 +131,8 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
             $this->log->add($this->id, '[DEBUG] IS SUBSCRIPTION VALID : ' . var_export(wps_sfw_check_valid_subscription($subscription_id), true) );
 
             if ( $this->id === $payment_method && 'yes' === $wps_sfw_renewal_order ) {
-                $wps_parent_order_id = get_post_meta( $subscription_id, 'wps_parent_order', true );
-                $card_token = get_post_meta( $wps_parent_order_id, 'wps_order_card_token', true );
+                $parent_order_id = get_post_meta( $subscription_id, 'wps_parent_order', true );
+                $card_token = get_post_meta( $parent_order_id, 'wc_iopay_order_card_token', true );
 
                 if ( empty( $card_token ) ) {
                     if ('yes' === $this->debug) {
@@ -145,7 +145,7 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                     return;
                 }
 
-                $this->api->process_recurring_payment($order_id, $card_token);
+                $this->api->process_recurring_payment($subscription_id, $order_id, $card_token);
             }
         }
     }

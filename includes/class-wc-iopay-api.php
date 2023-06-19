@@ -252,8 +252,21 @@ class WC_Iopay_API {
         return $max;
     }
 
-    public function generate_transaction_data_recurring($order, $card_token) {
-        $fullname = trim($order->billing_first_name . ' ' . $order->billing_last_name);
+    /**
+     * Generate transaction data for recurring order.
+     *
+     * @since 1.2.0
+     *
+     * @param WC_Order $order
+     * @param WC_Order $parent_order
+     * @param string   $card_token
+     */
+    public function generate_transaction_data_recurring($order, $parent_order, $card_token) {
+        $fullname = trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name());
+        $personType = $parent_order->get_meta('_billing_persontype');
+        $billing_cpf = $parent_order->get_meta('_billing_cpf');
+        $billing_cnpj = $parent_order->get_meta('_billing_cnpj');
+        $phone = $parent_order->get_meta('_billing_phone');
 
         // Set the request data.
         $data = array(
@@ -266,7 +279,7 @@ class WC_Iopay_API {
             'customer' => array(
                 'id' => $order->get_user_id(),
                 'name' => $fullname,
-                'email' => $order->billing_email,
+                'email' => $order->get_billing_email(),
             ),
             'metadata' => array(
                 'order_number' => $order->get_order_number(),
@@ -274,28 +287,28 @@ class WC_Iopay_API {
         );
 
         // Verify if client can select persontype
-        if (isset($order->billing_persontype)) {
-            if ('1' === $order->billing_persontype) {
-                $documento = $order->billing_cpf;
+        if (isset($personType)) {
+            if ('1' === $personType) {
+                $documento = $billing_cpf;
                 $customer_type = 'person_natural';
             } else {
-                $documento = $order->billing_cnpj;
+                $documento = $billing_cnpj;
                 $customer_type = 'person_legal';
             }
         } else {
             // Client cannot select persontype
             // Verify what input is filled
-            if (isset($order->billing_cpf) && ! empty($order->billing_cpf)) {
-                $documento = $order->billing_cpf;
+            if (isset($billing_cpf) && ! empty($billing_cpf)) {
+                $documento = $billing_cpf;
                 $customer_type = 'person_natural';
             } else {
-                $documento = $order->billing_cnpj;
+                $documento = $billing_cnpj;
                 $customer_type = 'person_legal';
             }
         }
 
-        if ( ! empty($order->billing_phone)) {
-            $phone_aux = $order->billing_phone;
+        if ( ! empty($phone)) {
+            $phone_aux = $phone;
 
             $ddd = substr($phone_aux, 0, 5);
             $number_phone = substr($phone_aux, 5);
@@ -321,13 +334,13 @@ class WC_Iopay_API {
                 'phone_number' => $billing_phone,
                 'customer_type' => $customer_type,
                 'address' => array(
-                    'line1' => $order->billing_address_1,
+                    'line1' => $order->get_billing_address_1(),
                     'line2' => $order->billing_number,
-                    'line3' => $order->billing_address_2,
+                    'line3' => $order->get_billing_address_2(),
                     'neighborhood' => $order->billing_neighborhood,
-                    'city' => $order->billing_city,
-                    'state' => $order->billing_state,
-                    'postal_code' => $order->billing_postcode,
+                    'city' => $order->get_billing_city(),
+                    'state' => $order->get_billing_state(),
+                    'postal_code' => $order->get_billing_postcode(),
                 ),
             );
 
@@ -338,10 +351,6 @@ class WC_Iopay_API {
             update_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, $iopay_customer['id']);
         }
 
-        // TODO não inserir string de produtos já que o description tem limite de 60 caracteres
-        // talvez colocar nome da loja ou configuração definida para o cliente inserir?
-        // $string_produtos = '';
-
         foreach ($order->get_items() as $item) {
             $dados_item = $item->get_data();
 
@@ -351,29 +360,27 @@ class WC_Iopay_API {
                 'amount' => (int) number_format($dados_item['total'] / $dados_item['quantity'], 0, '', ''),
                 'quantity' => $dados_item['quantity'],
             );
-
-            // $string_produtos .= 'Compra Produto: ' . trim($dados_item['name']) . ' - ';
         }
 
         $data['products'] = $items;
 
-        if ( ! empty($order->billing_phone)) {
-            $phone = $this->only_numbers($order->billing_phone);
+        if ( ! empty($phone)) {
+            $phoneClean = $this->only_numbers($phone);
 
             $data['customer']['phone'] = array(
-                'ddd' => substr($phone, 0, 2),
-                'number' => substr($phone, 2),
+                'ddd' => substr($phoneClean, 0, 2),
+                'number' => substr($phoneClean, 2),
             );
 
-            $billing_phone = '(' . substr($phone, 0, 2) . ')' . substr($phone, 2);
+            $billing_phone = '(' . substr($phoneClean, 0, 2) . ')' . substr($phoneClean, 2);
         }
 
         // Address.
-        if ( ! empty($order->billing_address_1)) {
+        if ( ! empty($order->get_billing_address_1())) {
             $data['customer']['address'] = array(
-                'street' => $order->billing_address_1,
-                'complementary' => $order->billing_address_2,
-                'zipcode' => $this->only_numbers($order->billing_postcode),
+                'street' => $order->get_billing_address_1(),
+                'complementary' => $order->get_billing_address_2(),
+                'zipcode' => $this->only_numbers($order->get_billing_postcode()),
             );
 
             // Non-WooCommerce default address fields.
@@ -387,11 +394,11 @@ class WC_Iopay_API {
 
         // Set the document number.
         if ( ! empty($order->billing_cpf)) {
-            $data['customer']['document_number'] = $this->only_numbers($order->billing_cpf);
+            $data['customer']['document_number'] = $this->only_numbers($order->get_meta('billing_cpf'));
         }
         if ( ! empty($order->billing_cnpj)) {
-            $data['customer']['name'] = empty($order->billing_company) ? $fullname : $order->billing_company;
-            $data['customer']['document_number'] = $this->only_numbers($order->billing_cnpj);
+            $data['customer']['name'] = empty($order->get_billing_company()) ? $fullname : $order->get_billing_company();
+            $data['customer']['document_number'] = $this->only_numbers($order->get_meta('billing_cnpj'));
         }
 
         // Set the customer gender.
@@ -459,21 +466,20 @@ class WC_Iopay_API {
             );
 
             if ( ! empty($setting['antifraude'])) {
-                $ddd = substr($order->billing_phone, 0, 5);
-                $number_phone = substr($order->billing_phone, 5);
+                $ddd = substr($billing_phone, 0, 5);
+                $number_phone = substr($billing_phone, 5);
 
                 $billing_phone = trim($ddd) . $number_phone;
-                $billing_cpf = $order->billing_cpf ?? '';
 
                 $taxpayer_id = str_replace(array('.', '-'), array('', ''), $billing_cpf);
-                $firstname = empty($order->shipping_first_name) ? $order->billing_first_name : $order->shipping_first_name;
-                $lastname = empty($order->shipping_last_name) ? $order->billing_last_name : $order->shipping_last_name;
-                $address_1 = empty($order->shipping_address_1) ? $order->billing_address_1 : $order->shipping_address_1;
+                $firstname = empty($order->get_shipping_first_name()) ? $order->get_billing_first_name() : $order->get_shipping_first_name();
+                $lastname = empty($order->get_shipping_last_name()) ? $order->get_billing_last_name() : $order->get_shipping_last_name();
+                $address_1 = empty($order->get_shipping_address_1()) ? $order->get_billing_address_1() : $order->get_shipping_address_1();
                 $address_2 = empty($order->shipping_number) ? $order->billing_number : $order->shipping_number;
-                $address_3 = empty($order->shipping_address_2) ? $order->billing_address_2 : $order->shipping_address_2;
-                $postal_code = empty($order->shipping_postcode) ? $order->billing_postcode : $order->shipping_postcode;
-                $city = empty($order->shipping_city) ? $order->billing_city : $order->shipping_city;
-                $state = empty($order->shipping_state) ? $order->billing_state : $order->shipping_state;
+                $address_3 = empty($order->get_shipping_address_2()) ? $order->get_billing_address_2() : $order->get_shipping_address_2();
+                $postal_code = empty($order->get_shipping_postcode()) ? $order->get_billing_postcode() : $order->get_shipping_postcode();
+                $city = empty($order->get_shipping_city()) ? $order->get_billing_city() : $order->get_shipping_city();
+                $state = empty($order->get_shipping_state()) ? $order->get_billing_state() : $order->get_shipping_state();
                 $client_type = 'pf';
                 $phone_number = $billing_phone;
                 $antifraud_sessid = date('YmdHis') . sha1(rand(1, 30));
@@ -760,7 +766,7 @@ class WC_Iopay_API {
             // If has recurrency save cardtoken
             if ('yes' === $hasRecurrency) {
                 // $this->gateway->log->add($this->gateway->id, '[DEBUG] card token : ' . var_export($token, true) . ' [subscription_id]: ' . \PHP_EOL . var_export($order->get_meta('subscription_id',true), true) . \PHP_EOL . ' [ORDER] ' . var_export($order->get_id(), true));
-                update_post_meta( $order->get_id(), 'wc_iopay_order_card_token', true );
+                update_post_meta( $order->get_id(), 'wc_iopay_order_card_token', $token );
             }
 
             $data['data_creditcard'] = array(
@@ -986,19 +992,21 @@ class WC_Iopay_API {
     /**
      * Process recurring payment.
      *
-     * @param int    $order_id   order ID
+     * @param int    $subscription_id order ID
+     * @param int    $order_id        order ID
      * @param string $card_token
      *
      * @return array redirect data
      */
-    public function process_recurring_payment($order_id, $card_token = '') {
+    public function process_recurring_payment($subscription_id, $order_id, $card_token = '') {
         $order = wc_get_order($order_id);
-        $data = $this->generate_transaction_data_recurring($order, $card_token);
+        $parent_order_id = get_post_meta( $subscription_id, 'wps_parent_order', true );
+        $parent_order = wc_get_order($parent_order_id);
+
+        $data = $this->generate_transaction_data_recurring($order, $parent_order, $card_token);
         $transaction = $this->do_transaction($order, $data);
 
         if ( ! empty($transaction['error'])) {
-            wc_add_notice($transaction['error']->message, 'error');
-
             return array(
                 'result' => 'fail',
             );
