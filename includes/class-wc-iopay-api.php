@@ -455,7 +455,7 @@ class WC_Iopay_API {
                 'amount' => number_format($total_juros * 100, 0, '', ''),
                 'currency' => 'BRL',
                 'description' => 'Compra produto pedido: ' . $order->get_id(),
-                'token' => $card_token,
+                'id_card' => $card_token,
                 'capture' => 1,
                 'statement_descriptor' => 'Compra com cartao',
                 'installment_plan' => array('number_installments' => (int) $installment),
@@ -649,10 +649,11 @@ class WC_Iopay_API {
             );
 
             $iopay_customer = $this->iopayRequest($this->get_api_url() . $endpoint, $data_customer);
+            $iopay_customer = $iopay_customer['id'];
 
-            $order->add_meta_data('iopay_customer_id', $iopay_customer['id'], true);
+            $order->add_meta_data('iopay_customer_id', $iopay_customer, true);
 
-            update_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, $iopay_customer['id']);
+            update_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, $iopay_customer);
         }
 
         // TODO não inserir string de produtos já que o description tem limite de 60 caracteres
@@ -763,17 +764,10 @@ class WC_Iopay_API {
             $setting = $this->gateway->settings;
             $token = sanitize_text_field($_POST['token']);
 
-            // If has recurrency save cardtoken
-            if ('yes' === $hasRecurrency) {
-                // $this->gateway->log->add($this->gateway->id, '[DEBUG] card token : ' . var_export($token, true) . ' [subscription_id]: ' . \PHP_EOL . var_export($order->get_meta('subscription_id',true), true) . \PHP_EOL . ' [ORDER] ' . var_export($order->get_id(), true));
-                update_post_meta( $order->get_id(), 'wc_iopay_order_card_token', $token );
-            }
-
             $data['data_creditcard'] = array(
                 'amount' => number_format($total_juros * 100, 0, '', ''),
                 'currency' => 'BRL',
                 'description' => 'Compra produto pedido: ' . $order->get_id(),
-                'token' => $token,
                 'capture' => 1,
                 'statement_descriptor' => 'Compra com cartao',
                 'installment_plan' => array('number_installments' => (int) $installment),
@@ -782,6 +776,26 @@ class WC_Iopay_API {
                 'reference_id' => $order->get_order_number(),
                 'products' => $items,
             );
+
+            // If has recurrency save cardtoken
+            if ('yes' === $hasRecurrency) {
+                // TODO associar card token a um comprador
+                // Salvar id_card
+
+                $endpoint = 'v1/card/associeate_token_with_customer';
+                $data_recurrency = array(
+                    'id_customer' => $iopay_customer,
+                    'token' => $token,
+                );
+
+                $cardToken = $this->iopayRequestCardToken($this->get_api_url() . $endpoint, $data_recurrency);
+                $data['data_creditcard']['id_card'] = $cardToken['id_card'];
+
+                // $this->gateway->log->add($this->gateway->id, '[DEBUG] card token : ' . var_export($token, true) . ' [subscription_id]: ' . \PHP_EOL . var_export($order->get_meta('subscription_id',true), true) . \PHP_EOL . ' [ORDER] ' . var_export($order->get_id(), true));
+                update_post_meta( $order->get_id(), 'wc_iopay_order_card_token', $cardToken['id_card'] );
+            } else {
+                $data['data_creditcard']['token'] = $token;
+            }
 
             if ( ! empty($setting['antifraude'])) {
                 $phone_aux = sanitize_text_field($_POST['billing_phone']);
@@ -1223,6 +1237,56 @@ class WC_Iopay_API {
     protected function send_email($subject, $title, $message) {
         $mailer = WC()->mailer();
         $mailer->send(get_option('admin_email'), $subject, $mailer->wrap_message($title, $message));
+    }
+
+    /**
+     * Gets reusable card token for subscription payments.
+     *
+     * @since 1.2.0
+     *
+     * @param string $url
+     * @param array  $data
+     *
+     * @return array
+     */
+    private function iopayRequestCardToken($url, $data) {
+        try {
+            $token = $this->getIOPayCardAuthorization();
+
+            $header = array(
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type' => 'application/json',
+            );
+
+            $post = json_encode($data);
+            $result = '';
+
+            $result = wp_remote_post($url, array(
+                'headers' => $header,
+                'body' => $post,
+            ));
+
+            if (is_wp_error($result)) {
+                throw new Exception('Request failed or invalid', 500);
+            }
+
+            $data = wp_remote_retrieve_body($result);
+            $data = json_decode($data);
+
+            $this->gateway->log->add($this->gateway->id, '[DEBUG] GET PERMANENT CARD TOKEN RESPONSE: ' . var_export($data, true) . \PHP_EOL . ' HEADERS: ' . var_export($header, true) . \PHP_EOL . ' BODY: ' . var_export($post, true));
+
+            if (isset($data->id_card)) {
+                return array('id_card' => $data->id_card);
+            }
+
+            return (array) $data;
+        } catch (Exception $e) {
+            if ('yes' === $this->gateway->debug) {
+                $this->gateway->log->add($this->gateway->id, 'Failed to make reusable card token: ' . $e->getMessage() . \PHP_EOL . ' Response: ' . var_export($result, true));
+            }
+
+            return array('error' => $e->getMessage());
+        }
     }
 
     private function iopayRequest($url, $data, $method = 'POST') {
