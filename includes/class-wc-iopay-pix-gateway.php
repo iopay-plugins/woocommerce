@@ -54,6 +54,75 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
         add_action('woocommerce_thankyou_' . $this->id, array($this, 'thankyou_page'));
         add_action('woocommerce_email_after_order_table', array($this, 'email_instructions'), 10, 3);
+
+        // Recurrency for wps-subscription plugin support
+        add_filter( 'wps_sfw_supported_payment_gateway_for_woocommerce', array($this, 'add_subscription_support'), 10, 2 );
+        add_action( 'wps_sfw_other_payment_gateway_renewal', array($this, 'process_subscription_payment'), 10, 3 );
+        add_action( 'wps_sfw_subscription_cancel', array($this, 'cancel_subscription'), 10, 2 );
+    }
+
+    /**
+     * This function is add a supported payment gateway.
+     *
+     * @param array  $supported_payment_method supported_payment_method
+     * @param string $payment_method           payment_method
+     *
+     * @since    1.2.0
+     */
+    public function add_subscription_support($supported_payment_method, $payment_method) {
+        if ( $this->id === $payment_method ) {
+            $supported_payment_method[] = $payment_method;
+        }
+
+        return $supported_payment_method;
+    }
+
+    /**
+     * Process subscription payment.
+     *
+     * @param WC_Order $order           order
+     * @param int      $subscription_id subscription_id
+     * @param string   $payment_method  payment_method
+     *
+     * @since    1.2.0
+     */
+    public function process_subscription_payment($order, $subscription_id, $payment_method) {
+        if ( $order && is_object( $order ) ) {
+            $order_id = $order->get_id();
+            $payment_method = get_post_meta( $order_id, '_payment_method', true );
+            $wps_sfw_renewal_order = get_post_meta( $order_id, 'wps_sfw_renewal_order', true );
+
+            if ( $this->id === $payment_method && 'yes' === $wps_sfw_renewal_order ) {
+                $response = $this->api->process_recurring_payment($subscription_id, $order_id);
+
+                if ('success' === $response['result']) {
+                    $order->update_status( 'wc-processing' );
+                } else {
+                    $order_notes = __( 'Transaction failed API error', 'woocommerce-iopay' );
+                    $order->update_status( 'failed', $order_notes );
+
+                    return;
+                }
+            }
+        }
+    }
+
+    /**
+     * This function is used to cancel subscriptions status.
+     *
+     * @param string $wps_subscription_id wps_subscription_id
+     * @param string $status              status
+     *
+     * @since 1.2.0
+     */
+    public function cancel_subscription($wps_subscription_id, $status) {
+        $wps_payment_method = get_post_meta( $wps_subscription_id, '_payment_method', true );
+        if ( $this->id === $wps_payment_method ) {
+            if ( 'Cancel' === $status ) {
+                wps_sfw_send_email_for_cancel_susbcription( $wps_subscription_id );
+                update_post_meta( $wps_subscription_id, 'wps_subscription_status', 'cancelled' );
+            }
+        }
     }
 
     /**
