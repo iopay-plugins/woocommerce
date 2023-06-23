@@ -241,10 +241,9 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
             return;
         }
 
-        $order = wc_get_order($order->id);
-        $data = get_post_meta($order->id, 'data_payment_iopay', true);
-        $data_success = get_post_meta($order->id, 'data_success_iopay', true);
-        $id_transaction = $data['id'];
+        $orderId = $order->get_id();
+        $order = wc_get_order($orderId);
+        $data = get_post_meta($orderId, 'data_payment_iopay', true);
 
         if (isset($data['pix_qrcode_url'])) {
             $email_type = $plain_text ? 'plain' : 'html';
