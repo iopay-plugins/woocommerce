@@ -14,7 +14,6 @@ class WC_Iopay_My_Account {
      * Initialize my account actions.
      */
     public function __construct() {
-        add_filter( 'woocommerce_my_account_my_orders_actions', array($this, 'my_orders_banking_ticket_link'), 10, 2 );
     }
 
     /**
@@ -25,7 +24,7 @@ class WC_Iopay_My_Account {
      *
      * @return array
      */
-    public function my_orders_banking_ticket_link($actions, $order) {
+    public static function my_orders_banking_ticket_link($actions, $order) {
         if ( 'iopay-banking-ticket' !== $order->payment_method ) {
             return $actions;
         }
@@ -45,5 +44,3 @@ class WC_Iopay_My_Account {
         return $actions;
     }
 }
-
-new WC_Iopay_My_Account();

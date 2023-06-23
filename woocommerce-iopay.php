@@ -53,6 +53,7 @@ if ( ! class_exists('WC_Iopay')) {
 
                 add_filter('woocommerce_payment_gateways', array($this, 'add_gateway'));
                 add_filter('plugin_action_links_' . plugin_basename(__FILE__), array($this, 'plugin_action_links'));
+                add_filter( 'woocommerce_my_account_my_orders_actions', array('WC_Iopay_My_Account', 'my_orders_banking_ticket_link'), 10, 2 );
             } else {
                 add_action('admin_notices', array($this, 'woocommerce_missing_notice'));
             }
