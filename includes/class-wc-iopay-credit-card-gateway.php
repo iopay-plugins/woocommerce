@@ -117,9 +117,9 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
     /**
      * Process subscription payment.
      *
-     * @param object $order           order
-     * @param int    $subscription_id subscription_id
-     * @param string $payment_method  payment_method
+     * @param WC_Order $order           order
+     * @param int      $subscription_id subscription_id
+     * @param string   $payment_method  payment_method
      *
      * @since    1.2.0
      */
@@ -128,7 +128,6 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
             $order_id = $order->get_id();
             $payment_method = get_post_meta( $order_id, '_payment_method', true );
             $wps_sfw_renewal_order = get_post_meta( $order_id, 'wps_sfw_renewal_order', true );
-            $this->log->add($this->id, '[DEBUG] IS SUBSCRIPTION VALID : ' . var_export(wps_sfw_check_valid_subscription($subscription_id), true) );
 
             if ( $this->id === $payment_method && 'yes' === $wps_sfw_renewal_order ) {
                 $parent_order_id = get_post_meta( $subscription_id, 'wps_parent_order', true );
@@ -145,7 +144,16 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                     return;
                 }
 
-                $this->api->process_recurring_payment($subscription_id, $order_id, $card_token);
+                $response = $this->api->process_recurring_payment($subscription_id, $order_id, $card_token);
+
+                if ('success' === $response['result']) {
+                    $order->update_status( 'wc-processing' );
+                } else {
+                    $order_notes = __( 'Transaction failed API error', 'woocommerce-iopay' );
+                    $order->update_status( 'failed', $order_notes );
+
+                    return;
+                }
             }
         }
     }
@@ -159,7 +167,6 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
      * @since 1.2.0
      */
     public function cancel_subscription($wps_subscription_id, $status) {
-        // TODO verificar função de cancelamento de recorrência
         $wps_payment_method = get_post_meta( $wps_subscription_id, '_payment_method', true );
         if ( $this->id === $wps_payment_method ) {
             if ( 'Cancel' === $status ) {
@@ -454,8 +461,6 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
      * @return array redirect data
      */
     public function process_payment($order_id) {
-        $this->log->add($this->id, '[DEBUG] POST: ' . var_export($_POST, true) . \PHP_EOL . ' [GET] - ' . var_export($_GET, true) . \PHP_EOL);
-
         return $this->api->process_regular_payment($order_id);
     }
 

@@ -327,9 +327,9 @@ class WC_Iopay_API {
         if (empty($iopay_customer)) {
             $endpoint = 'v1/customer/new';
             $data_customer = array(
-                'first_name' => $order->billing_first_name,
-                'last_name' => $order->billing_last_name,
-                'email' => $order->billing_email,
+                'first_name' => $order->get_billing_first_name(),
+                'last_name' => $order->get_billing_last_name(),
+                'email' => $order->get_billing_email(),
                 'taxpayer_id' => $documento,
                 'phone_number' => $billing_phone,
                 'customer_type' => $customer_type,
@@ -345,10 +345,11 @@ class WC_Iopay_API {
             );
 
             $iopay_customer = $this->iopayRequest($this->get_api_url() . $endpoint, $data_customer);
+            $iopay_customer = $iopay_customer['id'];
 
-            $order->add_meta_data('iopay_customer_id', $iopay_customer['id'], true);
+            $order->add_meta_data('iopay_customer_id', $iopay_customer, true);
 
-            update_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, $iopay_customer['id']);
+            update_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, $iopay_customer);
         }
 
         foreach ($order->get_items() as $item) {
@@ -779,9 +780,6 @@ class WC_Iopay_API {
 
             // If has recurrency save cardtoken
             if ('yes' === $hasRecurrency) {
-                // TODO associar card token a um comprador
-                // Salvar id_card
-
                 $endpoint = 'v1/card/associeate_token_with_customer';
                 $data_recurrency = array(
                     'id_customer' => $iopay_customer,
@@ -791,7 +789,6 @@ class WC_Iopay_API {
                 $cardToken = $this->iopayRequestCardToken($this->get_api_url() . $endpoint, $data_recurrency);
                 $data['data_creditcard']['id_card'] = $cardToken['id_card'];
 
-                // $this->gateway->log->add($this->gateway->id, '[DEBUG] card token : ' . var_export($token, true) . ' [subscription_id]: ' . \PHP_EOL . var_export($order->get_meta('subscription_id',true), true) . \PHP_EOL . ' [ORDER] ' . var_export($order->get_id(), true));
                 update_post_meta( $order->get_id(), 'wc_iopay_order_card_token', $cardToken['id_card'] );
             } else {
                 $data['data_creditcard']['token'] = $token;
@@ -1028,13 +1025,10 @@ class WC_Iopay_API {
 
         $this->save_order_meta_fields($order_id, $transaction);
         $this->process_order_status($order, $transaction['status']);
-        // Empty the cart.
-        WC()->cart->empty_cart();
 
         // Redirect to thanks page.
         return array(
             'result' => 'success',
-            'redirect' => $this->gateway->get_return_url($order),
         );
     }
 
@@ -1201,8 +1195,8 @@ class WC_Iopay_API {
 
         // Meta data.
         $meta_data = array(
-            __('Banking Ticket URL', 'woocommerce-iopay') => sanitize_text_field($data['payment_method']['url']),
-            __('Credit Card', 'woocommerce-iopay') => $this->get_card_brand_name(sanitize_text_field($data['card_brand'])),
+            __('Banking Ticket URL', 'woocommerce-iopay') => sanitize_text_field($data['payment_method']['url'] ?? ''),
+            __('Credit Card', 'woocommerce-iopay') => $this->get_card_brand_name(sanitize_text_field($data['card_brand'] ?? '')),
             __('Installments', 'woocommerce-iopay') => sanitize_text_field($data['installments']),
             __('Total paid', 'woocommerce-iopay') => number_format(intval($data['amount']) / 100, wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()),
             __('Anti Fraud Score', 'woocommerce-iopay') => sanitize_text_field($data['antifraud_score']),
@@ -1273,8 +1267,6 @@ class WC_Iopay_API {
             $data = wp_remote_retrieve_body($result);
             $data = json_decode($data);
 
-            $this->gateway->log->add($this->gateway->id, '[DEBUG] GET PERMANENT CARD TOKEN RESPONSE: ' . var_export($data, true) . \PHP_EOL . ' HEADERS: ' . var_export($header, true) . \PHP_EOL . ' BODY: ' . var_export($post, true));
-
             if (isset($data->id_card)) {
                 return array('id_card' => $data->id_card);
             }
@@ -1329,8 +1321,6 @@ class WC_Iopay_API {
 
             $data = wp_remote_retrieve_body($result);
             $data = json_decode($data);
-
-            $this->gateway->log->add($this->gateway->id, 'Failed to make the transaction - request: ' . var_export($data, true) . \PHP_EOL . ' HEADERS: ' . var_export($header, true) . \PHP_EOL . ' BODY: ' . var_export($post, true) . \PHP_EOL . ' URL: ' . var_export($url, true));
 
             if (isset($data->success)) {
                 return (array) $data->success;
