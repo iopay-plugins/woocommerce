@@ -1,0 +1,16 @@
+{
+    "name": "iopay/iopay-woocommerce",
+    "description": "Payment plugin for WooCommerce",
+    "type": "project",
+    "require-dev": {
+        "phan/phan": "^5.4"
+    },
+    "license": "GPLv3 or higher",
+    "autoload": {
+        "psr-4": {
+            "Iopay\\IopayWoocommerce\\": "src/"
+        }
+    },
+    "minimum-stability": "stable",
+    "require": {}
+}
