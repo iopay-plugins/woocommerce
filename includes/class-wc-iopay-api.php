@@ -780,6 +780,8 @@ class WC_Iopay_API {
 
             // If has recurrency save cardtoken
             if ('yes' === $hasRecurrency) {
+                $subscription_id = get_post_meta($order->get_id(), 'wps_subscription_id', true);
+
                 $endpoint = 'v1/card/associeate_token_with_customer';
                 $data_recurrency = array(
                     'id_customer' => $iopay_customer,
@@ -789,7 +791,7 @@ class WC_Iopay_API {
                 $cardToken = $this->iopayRequestCardToken($this->get_api_url() . $endpoint, $data_recurrency);
                 $data['data_creditcard']['id_card'] = $cardToken['id_card'];
 
-                update_post_meta( $order->get_id(), 'wc_iopay_order_card_token', $cardToken['id_card'] );
+                add_post_meta( $subscription_id, 'wc_iopay_order_card_token', $cardToken['id_card'] );
             } else {
                 $data['data_creditcard']['token'] = $token;
             }

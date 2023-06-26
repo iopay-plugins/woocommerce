@@ -130,8 +130,7 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
             $wps_sfw_renewal_order = get_post_meta( $order_id, 'wps_sfw_renewal_order', true );
 
             if ( $this->id === $payment_method && 'yes' === $wps_sfw_renewal_order ) {
-                $parent_order_id = get_post_meta( $subscription_id, 'wps_parent_order', true );
-                $card_token = get_post_meta( $parent_order_id, 'wc_iopay_order_card_token', true );
+                $card_token = get_post_meta( $subscription_id, 'wc_iopay_order_card_token', true );
 
                 if ( empty( $card_token ) ) {
                     if ('yes' === $this->debug) {
