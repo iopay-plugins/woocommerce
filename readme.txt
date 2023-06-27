@@ -84,6 +84,12 @@ It is possible to remove the address, company and telephone fields, keeping only
 
 == Changelog ==
 
+= v1.2.0 =
+**28/06/2023**
+* Subscription implementation for official WooCommerce plugin;
+* Subscription implementation for free WPS WooCommerce plugin;
+* Removal of user metadata when removing plugin.
+
 = 1.1.5 =
 **12/06/2023**
 * Fixed CPF/CNPJ detection bug;
