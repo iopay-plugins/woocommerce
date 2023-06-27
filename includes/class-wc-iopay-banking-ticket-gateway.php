@@ -44,6 +44,20 @@ class WC_Iopay_Banking_Ticket_Gateway extends Wc_Iopay_Paymethod_Gateway {
         $this->late_fee_value = $this->get_option('late_fee_mode');
         $this->expiration_date = $this->get_option('expiration_date');
 
+        $this->supports = array(
+            'subscriptions',
+            'products',
+            'subscription_cancellation',
+            'subscription_suspension',
+            'subscription_reactivation',
+            'subscription_amount_changes',
+            'subscription_date_changes',
+            'subscription_payment_method_change',
+            'subscription_payment_method_change_customer',
+            'subscription_payment_method_change_admin',
+            'multiple_subscriptions',
+        );
+
         // Active logs.
         if ('yes' === $this->debug) {
             $this->log = new WC_Logger();
@@ -62,6 +76,31 @@ class WC_Iopay_Banking_Ticket_Gateway extends Wc_Iopay_Paymethod_Gateway {
         add_filter( 'wps_sfw_supported_payment_gateway_for_woocommerce', array($this, 'add_subscription_support'), 10, 2 );
         add_action( 'wps_sfw_other_payment_gateway_renewal', array($this, 'process_subscription_payment'), 10, 3 );
         add_action( 'wps_sfw_subscription_cancel', array($this, 'cancel_subscription'), 10, 2 );
+
+        // Recurrency for oficial woocommerce plugin
+        add_action('scheduled_subscription_payment_' . $this->id, array($this, 'scheduled_subscription_payment'), 10, 3);
+    }
+
+    /**
+     * Add support for recurrency payment for oficial woocommerce plugin.
+     *
+     * @since 1.2.0
+     *
+     * @param string   $amount
+     * @param WC_Order $order
+     * @param string   $product_id
+     */
+    public function scheduled_subscription_payment($amount, $order, $product_id) {
+        $response = $this->api->process_recurring_payment($order, $amount);
+
+        if ('success' === $response['result']) {
+            $order->update_status( 'wc-processing' );
+        } else {
+            $order_notes = __( 'Transaction failed API error', 'woocommerce-iopay' );
+            $order->update_status( 'failed', $order_notes );
+
+            return;
+        }
     }
 
     /**
@@ -96,7 +135,7 @@ class WC_Iopay_Banking_Ticket_Gateway extends Wc_Iopay_Paymethod_Gateway {
             $wps_sfw_renewal_order = get_post_meta( $order_id, 'wps_sfw_renewal_order', true );
 
             if ( $this->id === $payment_method && 'yes' === $wps_sfw_renewal_order ) {
-                $response = $this->api->process_recurring_payment($subscription_id, $order_id);
+                $response = $this->api->process_wps_recurring_payment($subscription_id, $order_id);
 
                 if ('success' === $response['result']) {
                     $order->update_status( 'wc-processing' );

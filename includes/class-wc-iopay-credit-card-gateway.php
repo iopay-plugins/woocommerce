@@ -43,8 +43,6 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
         $this->debug = $this->get_option('debug');
         $this->antifraude = $this->get_option('antifraude');
 
-        // TODO add support for oficial woocommerce_subscription plugin
-        // @see {https://woocommerce.com/document/subscriptions/develop/payment-gateway-integration/#section-1}
         $this->supports = array(
             'subscriptions',
             'products',
@@ -96,6 +94,44 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
         add_filter( 'wps_sfw_supported_payment_gateway_for_woocommerce', array($this, 'add_subscription_support'), 10, 2 );
         add_action( 'wps_sfw_other_payment_gateway_renewal', array($this, 'process_subscription_payment'), 10, 3 );
         add_action( 'wps_sfw_subscription_cancel', array($this, 'cancel_subscription'), 10, 2 );
+
+        // Recurrency for oficial woocommerce plugin
+        add_action('scheduled_subscription_payment_' . $this->id, array($this, 'scheduled_subscription_payment'), 10, 3);
+    }
+
+    /**
+     * Add support for recurrency payment for oficial woocommerce plugin.
+     *
+     * @since 1.2.0
+     *
+     * @param string   $amount
+     * @param WC_Order $order
+     * @param string   $product_id
+     */
+    public function scheduled_subscription_payment($amount, $order, $product_id) {
+        $card_token = get_user_meta($order->get_user_id(), 'iopay_card_token_' . $this->api_key, true);
+
+        if ( empty( $card_token ) ) {
+            if ('yes' === $this->debug) {
+                $this->log->add($this->id, 'Doing a recurring transaction for order ' . $order->get_id() . '...' . \PHP_EOL . ' Transaction failed no card token found in subscription');
+            }
+
+            $order_notes = __( 'card token not found', 'woocommerce-iopay' );
+            $order->update_status( 'failed', $order_notes );
+
+            return;
+        }
+
+        $response = $this->api->process_recurring_payment($order, $amount, $card_token);
+
+        if ('success' === $response['result']) {
+            $order->update_status( 'wc-processing' );
+        } else {
+            $order_notes = __( 'Transaction failed API error', 'woocommerce-iopay' );
+            $order->update_status( 'failed', $order_notes );
+
+            return;
+        }
     }
 
     /**
@@ -143,7 +179,7 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
                     return;
                 }
 
-                $response = $this->api->process_recurring_payment($subscription_id, $order_id, $card_token);
+                $response = $this->api->process_wps_recurring_payment($subscription_id, $order_id, $card_token);
 
                 if ('success' === $response['result']) {
                     $order->update_status( 'wc-processing' );
