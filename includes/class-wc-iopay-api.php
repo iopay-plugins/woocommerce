@@ -416,8 +416,8 @@ class WC_Iopay_API {
         }
 
         if ('iopay-credit-card' === $this->gateway->id) {
-            $installment = '1';
-            $destino = 'interest_rate_installment_' . $installment;
+            $installment = 1;
+            $destino = 'interest_rate_installment_' . (string) $installment;
             ${$destino} = $destino;
 
             $interest_rate = $this->gateway->${$destino};
@@ -458,7 +458,7 @@ class WC_Iopay_API {
                 'id_card' => $card_token,
                 'capture' => 1,
                 'statement_descriptor' => 'Compra com cartao',
-                'installment_plan' => array('number_installments' => (int) $installment),
+                'installment_plan' => array('number_installments' => $installment),
                 'io_seller_id' => $this->gateway->api_key,
                 'payment_type' => 'credit',
                 'reference_id' => $order->get_order_number(),
@@ -724,8 +724,17 @@ class WC_Iopay_API {
         }
 
         if ('iopay-credit-card' === $this->gateway->id) {
-            $installment = '1';
-            $destino = 'interest_rate_installment_' . $installment;
+            $installment = 1;
+
+            if (isset($_POST['iopay_installments'])) {
+                $installment = (int) sanitize_text_field($_POST['iopay_installments']);
+
+                if ($installment < 1) {
+                    $installment = 1;
+                }
+            }
+
+            $destino = 'interest_rate_installment_' . (string) $installment;
             ${$destino} = $destino;
 
             $interest_rate = $this->gateway->${$destino};
@@ -734,8 +743,6 @@ class WC_Iopay_API {
             $total_sem_juros = 0;
 
             if ($interest_rate > 0) {
-                // $total_parcela = $order->get_total() / $installment;
-                // $tax = ((($order->get_total()) * $interest_rate) / 100);
                 $total_juros = ((($order->get_total() * $interest_rate) / 100) + $order->get_total());
                 $total_sem_juros = $total_juros - $order->get_total();
             }
@@ -768,7 +775,7 @@ class WC_Iopay_API {
                 'id_card' => $card_token,
                 'capture' => 1,
                 'statement_descriptor' => 'Compra com cartao',
-                'installment_plan' => array('number_installments' => (int) $installment),
+                'installment_plan' => array('number_installments' => $installment),
                 'io_seller_id' => $this->gateway->api_key,
                 'payment_type' => 'credit',
                 'reference_id' => $order->get_order_number(),
@@ -1035,9 +1042,17 @@ class WC_Iopay_API {
         }
 
         if ('iopay-credit-card' === $this->gateway->id) {
-            $installment = sanitize_text_field($_POST['iopay_installments']);
-            $installment = ('0' === $installment) ? '1' : $installment;
-            $destino = 'interest_rate_installment_' . $installment;
+            $installment = 1;
+
+            if (isset($_POST['iopay_installments'])) {
+                $installment = (int) sanitize_text_field($_POST['iopay_installments']);
+
+                if ($installment < 1) {
+                    $installment = 1;
+                }
+            }
+
+            $destino = 'interest_rate_installment_' . (string) $installment;
             ${$destino} = $destino;
 
             $interest_rate = $this->gateway->${$destino};
@@ -1080,7 +1095,7 @@ class WC_Iopay_API {
                 'description' => 'Compra produto pedido: ' . $order->get_id(),
                 'capture' => 1,
                 'statement_descriptor' => 'Compra com cartao',
-                'installment_plan' => array('number_installments' => (int) $installment),
+                'installment_plan' => array('number_installments' => $installment),
                 'io_seller_id' => $this->gateway->api_key,
                 'payment_type' => 'credit',
                 'reference_id' => $order->get_order_number(),
