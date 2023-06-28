@@ -1,5 +1,10 @@
 # Changelog
 
+### v1.2.0 - 28/06/2023
+* Implementação de recorrência para plugin oficial do WooCommerce;
+* Implementação de recorrência para plugin gratuito WPS para WooCommerce;
+* Remoção de metadados de usuários ao deletar plugin.
+
 ### v1.1.5 - 12/06/2023
 * Corrigido de bug de detecção de CPF/CNPJ;
 * Corrigido bug de campos de entrega não reconhecidos;

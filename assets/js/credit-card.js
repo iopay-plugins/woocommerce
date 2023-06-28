@@ -99,6 +99,14 @@
          */
         $('body').on('click', '#place_order', function (event) {
             event.preventDefault();
+
+            var recurrencyWsp = document.getElementsByClassName('wps_wsp_recurring_total')[0];
+            var hasRecurrency = 'no';
+
+            if (recurrencyWsp) {
+                hasRecurrency = 'yes';
+            }
+
             if (!$('#payment_method_iopay-credit-card').is(':checked')) {
 
                 var form = $('form.checkout, form#order_review'),
@@ -223,6 +231,7 @@
                                 form.append($('<input name="expiration_month" type="hidden" />').val(expiration_month));
                                 form.append($('<input name="expiration_year" type="hidden" />').val(expiration_year));
                                 form.append($('<input name="last4_digits" type="hidden" />').val(last4_digits));
+                                form.append($('<input name="wsp_recurring" type="hidden" />').val(hasRecurrency));
 
                                 // Submit the form.
                                 form.submit();

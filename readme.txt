@@ -5,7 +5,7 @@ Tags: woocommerce, iopay, payment, pix
 Requires at least: 5.7
 Tested up to: 6.2
 Requires PHP: 7.0
-Stable tag: 1.1.5
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,6 +83,12 @@ It is possible to remove the address, company and telephone fields, keeping only
 1. none
 
 == Changelog ==
+
+= v1.2.0 =
+**28/06/2023**
+* Subscription implementation for official WooCommerce plugin;
+* Subscription implementation for free WPS WooCommerce plugin;
+* Removal of user metadata when removing plugin.
 
 = 1.1.5 =
 **12/06/2023**
