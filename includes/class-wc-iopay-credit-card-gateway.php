@@ -91,12 +91,15 @@ class WC_Iopay_Credit_Card_Gateway extends Wc_Iopay_Paymethod_Gateway {
         add_action('woocommerce_email_after_order_table', array($this, 'email_instructions'), 10, 3);
 
         // Recurrency for wps-subscription plugin support
-        add_filter( 'wps_sfw_supported_payment_gateway_for_woocommerce', array($this, 'add_subscription_support'), 10, 2 );
-        add_action( 'wps_sfw_other_payment_gateway_renewal', array($this, 'process_subscription_payment'), 10, 3 );
-        add_action( 'wps_sfw_subscription_cancel', array($this, 'cancel_subscription'), 10, 2 );
-
+        if (class_exists('Subscriptions_For_Woocommerce')) {
+            add_filter( 'wps_sfw_supported_payment_gateway_for_woocommerce', array($this, 'add_subscription_support'), 10, 2 );
+            add_action( 'wps_sfw_other_payment_gateway_renewal', array($this, 'process_subscription_payment'), 10, 3 );
+            add_action( 'wps_sfw_subscription_cancel', array($this, 'cancel_subscription'), 10, 2 );
+        }
         // Recurrency for oficial woocommerce plugin
-        add_action('scheduled_subscription_payment_' . $this->id, array($this, 'scheduled_subscription_payment'), 10, 3);
+        if (class_exists('WC_Subscriptions_Order')) {
+            add_action('scheduled_subscription_payment_' . $this->id, array($this, 'scheduled_subscription_payment'), 10, 3);
+        }
     }
 
     /**

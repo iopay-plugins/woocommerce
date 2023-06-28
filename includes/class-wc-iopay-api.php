@@ -1104,7 +1104,7 @@ class WC_Iopay_API {
             }
 
             // If has recurrency for plugin woocommerce recurring payment
-            if (WC_Subscriptions_Order::order_contains_subscription( $order->get_id() )) {
+            if (class_exists('WC_Subscriptions_Order') && WC_Subscriptions_Order::order_contains_subscription( $order->get_id() )) {
                 $endpoint = 'v1/card/associeate_token_with_customer';
                 $data_recurrency = array(
                     'id_customer' => $iopay_customer,
