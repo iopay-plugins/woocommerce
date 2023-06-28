@@ -287,25 +287,13 @@ class WC_Iopay_API {
             ),
         );
 
-        // Verify if client can select persontype
-        if (isset($personType)) {
-            if ('1' === $personType) {
-                $documento = $billing_cpf;
-                $customer_type = 'person_natural';
-            } else {
-                $documento = $billing_cnpj;
-                $customer_type = 'person_legal';
-            }
+        // Verify client persontype
+        if (isset($billing_cpf) && ! empty($billing_cpf)) {
+            $documento = $billing_cpf;
+            $customer_type = 'person_natural';
         } else {
-            // Client cannot select persontype
-            // Verify what input is filled
-            if (isset($billing_cpf) && ! empty($billing_cpf)) {
-                $documento = $billing_cpf;
-                $customer_type = 'person_natural';
-            } else {
-                $documento = $billing_cnpj;
-                $customer_type = 'person_legal';
-            }
+            $documento = $billing_cnpj;
+            $customer_type = 'person_legal';
         }
 
         if ( ! empty($phone)) {
@@ -595,25 +583,13 @@ class WC_Iopay_API {
             ),
         );
 
-        // Verify if client can select persontype
-        if (isset($personType)) {
-            if ('1' === $personType) {
-                $documento = $billing_cpf;
-                $customer_type = 'person_natural';
-            } else {
-                $documento = $billing_cnpj;
-                $customer_type = 'person_legal';
-            }
+        // Verify client persontype
+        if (isset($billing_cpf) && ! empty($billing_cpf)) {
+            $documento = $billing_cpf;
+            $customer_type = 'person_natural';
         } else {
-            // Client cannot select persontype
-            // Verify what input is filled
-            if (isset($billing_cpf) && ! empty($billing_cpf)) {
-                $documento = $billing_cpf;
-                $customer_type = 'person_natural';
-            } else {
-                $documento = $billing_cnpj;
-                $customer_type = 'person_legal';
-            }
+            $documento = $billing_cnpj;
+            $customer_type = 'person_legal';
         }
 
         if ( ! empty($phone)) {
