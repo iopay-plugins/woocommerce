@@ -10,7 +10,7 @@ if ( ! defined('ABSPATH')) {
 /**
  * WC_Iopay_API class.
  */
-class WC_Iopay_API {
+final class WC_Iopay_API {
     /**
      * API URL.
      */
@@ -1386,7 +1386,7 @@ class WC_Iopay_API {
      * @param WC_Order $order  order data
      * @param string   $status transaction status
      */
-    public function process_order_status($order, $status) {
+    public function process_order_status($order, $status): void {
         if ('yes' === $this->gateway->debug) {
             $this->gateway->log->add($this->gateway->id, 'Payment status for order ' . $order->get_order_number() . ' is now: ' . $status);
         }
@@ -1401,7 +1401,7 @@ class WC_Iopay_API {
 
             case 'pre_authorized':
                 $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
-                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
+                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . (int) $transaction_id . '">https://minhaconta.iopay.com.br/login/#/transactions/' . (int) $transaction_id . '</a>';
 
                 // translators: %s transaction details url
                 $order->update_status('on-hold', __('Iopay: You should manually analyze this transaction to continue payment flow, access %s to do it!', 'woocommerce-iopay'), $transaction_url);
@@ -1422,7 +1422,7 @@ class WC_Iopay_API {
                 $order->update_status('failed', __('Iopay: The transaction was rejected by the card company or by fraud.', 'woocommerce-iopay'));
 
                 $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
-                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
+                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . (int) $transaction_id . '">https://minhaconta.iopay.com.br/login/#/transactions/' . (int) $transaction_id . '</a>';
 
                 $this->send_email(
                     sprintf(esc_html__('The transaction for order %s was rejected by the card company or by fraud', 'woocommerce-iopay'), $order->get_order_number()),
@@ -1436,7 +1436,7 @@ class WC_Iopay_API {
                 $order->update_status('refunded', __('Iopay: The transaction was refunded/canceled.', 'woocommerce-iopay'));
 
                 $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
-                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
+                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . (int) $transaction_id . '">https://minhaconta.iopay.com.br/login/#/transactions/' . (int) $transaction_id . '</a>';
 
                 $this->send_email(
                     sprintf(esc_html__('The transaction for order %s refunded', 'woocommerce-iopay'), $order->get_order_number()),
@@ -1451,7 +1451,7 @@ class WC_Iopay_API {
         }
     }
 
-    public function iopay_scripts() {
+    public function iopay_scripts(): void {
         if (is_checkout() || is_add_payment_method_page() || is_order_received_page()) {
             wp_enqueue_script('iopay-main', plugins_url('assets/js/main.js', plugin_dir_path(__FILE__)), array('jquery'), WC_Iopay::VERSION, true);
         }
@@ -1483,6 +1483,11 @@ class WC_Iopay_API {
         // Client is not logged in
         if (empty($iopay_customer_id)) {
             $iopay_customer_id = $order->get_meta('iopay_customer_id', true);
+            // Have triple check if the customer_id exists
+            // Beacause we have recurrent error on this parameter
+            if (empty($iopay_customer_id)) {
+                $iopay_customer_id = $this->get_customer_id($order);
+            }
         }
 
         if ('boleto' == $data['payment_method']) {
@@ -1496,6 +1501,90 @@ class WC_Iopay_API {
         $endpoint = 'v1/transaction/new/' . $iopay_customer_id;
 
         return $this->iopayRequest($this->get_api_url() . $endpoint, $data);
+    }
+
+    /**
+     * Get the customer id with IoPay API query
+     *
+     * @since 1.2.1
+     *
+     * @param  WC_Order $order 
+     *
+     * @return string
+     */
+    private function get_customer_id($order) : string {
+        try {
+            // Verify if client can select persontype
+            if (isset($order->billing_persontype)) {
+                if ('1' === $order->billing_persontype) {
+                    $documento = $order->billing_cpf;
+                    $customer_type = 'person_natural';
+                } else {
+                    $documento = $order->billing_cnpj;
+                    $customer_type = 'person_legal';
+                }
+            } else {
+                // Client cannot select persontype
+                // Verify what input is filled
+                if (isset($order->billing_cpf) && ! empty($order->billing_cpf)) {
+                    $documento = $order->billing_cpf;
+                    $customer_type = 'person_natural';
+                } else {
+                    $documento = $order->billing_cnpj;
+                    $customer_type = 'person_legal';
+                }
+            }
+
+            if ( ! empty($order->billing_phone)) {
+                $phone_aux = $order->billing_phone;
+
+                $ddd = substr($phone_aux, 0, 5);
+                $number_phone = substr($phone_aux, 5);
+
+                $billing_phone = trim($ddd) . $number_phone;
+            }
+
+            $endpoint = 'v1/customer/new';
+            $data_customer = array(
+                'first_name' => $order->billing_first_name,
+                'last_name' => $order->billing_last_name,
+                'email' => $order->billing_email,
+                'taxpayer_id' => $documento,
+                'phone_number' => $billing_phone,
+                'customer_type' => $customer_type,
+                'address' => array(
+                    'line1' => $order->billing_address_1,
+                    'line2' => $order->billing_number,
+                    'line3' => $order->billing_address_2,
+                    'neighborhood' => $order->billing_neighborhood,
+                    'city' => $order->billing_city,
+                    'state' => $order->billing_state,
+                    'postal_code' => $order->billing_postcode,
+                ),
+            );
+
+            $result = $this->iopayRequest($this->get_api_url() . $endpoint, $data_customer);
+            
+            // Double check if parameter exists
+            // Because the error is recurring we have this redundant check
+            if (isset($result['id']) && ! empty($result['id'])) {
+                $iopay_customer = $result['id'];
+
+                $order->update_meta_data('iopay_customer_id', $iopay_customer);
+    
+                update_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, $iopay_customer);
+            
+                return $iopay_customer;
+            } else {
+                throw new Exception("Error Processing Request - Query user", 500);
+            }
+        } catch (Exception $e) {
+            if ('yes' === $this->gateway->debug) {
+                $this->gateway->log->add($this->gateway->id, 'Failed to get the IoPay customer: ' . $e->getMessage() . \PHP_EOL . ' Response: ' . var_export($result, true));
+            }
+
+            return 'error-no-user';
+        }
     }
 
     /**
@@ -1528,7 +1617,7 @@ class WC_Iopay_API {
      * @param int   $id   order ID
      * @param array $data order data
      */
-    protected function save_order_meta_fields($id, $data) {
+    protected function save_order_meta_fields($id, $data): void {
         $data['payment_method'] = (array) $data['payment_method'];
         $data['payment_method']['metadata'] = (array) $data['payment_method']['metadata'];
 
@@ -1546,11 +1635,11 @@ class WC_Iopay_API {
             __('Banking Ticket URL', 'woocommerce-iopay') => sanitize_text_field($data['payment_method']['url'] ?? ''),
             __('Credit Card', 'woocommerce-iopay') => $this->get_card_brand_name(sanitize_text_field($data['card_brand'] ?? '')),
             __('Installments', 'woocommerce-iopay') => sanitize_text_field($data['installments']),
-            __('Total paid', 'woocommerce-iopay') => number_format(intval($data['amount']) / 100, wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()),
+            __('Total paid', 'woocommerce-iopay') => number_format((int) ($data['amount']) / 100, wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()),
             __('Anti Fraud Score', 'woocommerce-iopay') => sanitize_text_field($data['antifraud_score']),
             '_wc_iopay_transaction_data' => $payment_data,
-            '_wc_iopay_transaction_id' => intval($data['id']),
-            '_transaction_id' => intval($data['id']),
+            '_wc_iopay_transaction_id' => (int) ($data['id']),
+            '_transaction_id' => (int) ($data['id']),
         );
 
         $order = wc_get_order($id);
@@ -1576,7 +1665,7 @@ class WC_Iopay_API {
      * @param string $title   email title
      * @param string $message email message
      */
-    protected function send_email($subject, $title, $message) {
+    protected function send_email($subject, $title, $message): void {
         $mailer = WC()->mailer();
         $mailer->send(get_option('admin_email'), $subject, $mailer->wrap_message($title, $message));
     }
@@ -1659,7 +1748,6 @@ class WC_Iopay_API {
 
                 default:
                     throw new Exception('Method not allowed', 404);
-
                     break;
             }
 

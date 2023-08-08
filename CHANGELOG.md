@@ -1,5 +1,10 @@
 # Changelog
 
+### v1.2.1 - 09/08/2023
+* Corrigido erro com cliente não reconhecido pela API de transação;
+* Otimizações de script;
+* Otimizações gerais de código.
+
 ### v1.2.0 - 28/06/2023
 * Implementação de recorrência para plugin oficial do WooCommerce;
 * Implementação de recorrência para plugin gratuito WPS para WooCommerce;

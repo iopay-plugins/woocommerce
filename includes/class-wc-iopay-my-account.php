@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * WC_Iopay_My_Account class.
  */
-class WC_Iopay_My_Account {
+final class WC_Iopay_My_Account {
     /**
      * Initialize my account actions.
      */
