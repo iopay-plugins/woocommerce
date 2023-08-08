@@ -1483,6 +1483,11 @@ final class WC_Iopay_API {
         // Client is not logged in
         if (empty($iopay_customer_id)) {
             $iopay_customer_id = $order->get_meta('iopay_customer_id', true);
+            // Have triple check if the customer_id exists
+            // Beacause we have recurrent error on this parameter
+            if (empty($iopay_customer_id)) {
+                $iopay_customer_id = $this->get_customer_id($order);
+            }
         }
 
         if ('boleto' == $data['payment_method']) {
@@ -1496,6 +1501,90 @@ final class WC_Iopay_API {
         $endpoint = 'v1/transaction/new/' . $iopay_customer_id;
 
         return $this->iopayRequest($this->get_api_url() . $endpoint, $data);
+    }
+
+    /**
+     * Get the customer id with IoPay API query
+     *
+     * @since 1.2.1
+     *
+     * @param  WC_Order $order 
+     *
+     * @return string
+     */
+    private function get_customer_id($order) : string {
+        try {
+            // Verify if client can select persontype
+            if (isset($order->billing_persontype)) {
+                if ('1' === $order->billing_persontype) {
+                    $documento = $order->billing_cpf;
+                    $customer_type = 'person_natural';
+                } else {
+                    $documento = $order->billing_cnpj;
+                    $customer_type = 'person_legal';
+                }
+            } else {
+                // Client cannot select persontype
+                // Verify what input is filled
+                if (isset($order->billing_cpf) && ! empty($order->billing_cpf)) {
+                    $documento = $order->billing_cpf;
+                    $customer_type = 'person_natural';
+                } else {
+                    $documento = $order->billing_cnpj;
+                    $customer_type = 'person_legal';
+                }
+            }
+
+            if ( ! empty($order->billing_phone)) {
+                $phone_aux = $order->billing_phone;
+
+                $ddd = substr($phone_aux, 0, 5);
+                $number_phone = substr($phone_aux, 5);
+
+                $billing_phone = trim($ddd) . $number_phone;
+            }
+
+            $endpoint = 'v1/customer/new';
+            $data_customer = array(
+                'first_name' => $order->billing_first_name,
+                'last_name' => $order->billing_last_name,
+                'email' => $order->billing_email,
+                'taxpayer_id' => $documento,
+                'phone_number' => $billing_phone,
+                'customer_type' => $customer_type,
+                'address' => array(
+                    'line1' => $order->billing_address_1,
+                    'line2' => $order->billing_number,
+                    'line3' => $order->billing_address_2,
+                    'neighborhood' => $order->billing_neighborhood,
+                    'city' => $order->billing_city,
+                    'state' => $order->billing_state,
+                    'postal_code' => $order->billing_postcode,
+                ),
+            );
+
+            $result = $this->iopayRequest($this->get_api_url() . $endpoint, $data_customer);
+            
+            // Double check if parameter exists
+            // Because the error is recurring we have this redundant check
+            if (isset($result['id']) && ! empty($result['id'])) {
+                $iopay_customer = $result['id'];
+
+                $order->update_meta_data('iopay_customer_id', $iopay_customer);
+    
+                update_user_meta($order->get_user_id(), 'iopay_customer_' . $this->gateway->api_key, $iopay_customer);
+            
+                return $iopay_customer;
+            } else {
+                throw new Exception("Error Processing Request - Query user", 500);
+            }
+        } catch (Exception $e) {
+            if ('yes' === $this->gateway->debug) {
+                $this->gateway->log->add($this->gateway->id, 'Failed to get the IoPay customer: ' . $e->getMessage() . \PHP_EOL . ' Response: ' . var_export($result, true));
+            }
+
+            return 'error-no-user';
+        }
     }
 
     /**
