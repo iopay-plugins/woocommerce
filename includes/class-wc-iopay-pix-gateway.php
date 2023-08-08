@@ -12,7 +12,7 @@ if ( ! defined('ABSPATH')) {
  *
  * @extends Wc_Iopay_Paymethod_Gateway
  */
-class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
+final class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
     /**
      * Constructor for the gateway.
      *
@@ -91,7 +91,7 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
      * @param WC_Order $order
      * @param string   $product_id
      */
-    public function scheduled_subscription_payment($amount, $order, $product_id) {
+    public function scheduled_subscription_payment($amount, $order, $product_id): void {
         $response = $this->api->process_recurring_payment($order, $amount);
 
         if ('success' === $response['result']) {
@@ -129,7 +129,7 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
      *
      * @since    1.2.0
      */
-    public function process_subscription_payment($order, $subscription_id, $payment_method) {
+    public function process_subscription_payment($order, $subscription_id, $payment_method): void {
         if ( $order && is_object( $order ) ) {
             $order_id = $order->get_id();
             $payment_method = get_post_meta( $order_id, '_payment_method', true );
@@ -158,7 +158,7 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
      *
      * @since 1.2.0
      */
-    public function cancel_subscription($wps_subscription_id, $status) {
+    public function cancel_subscription($wps_subscription_id, $status): void {
         $wps_payment_method = get_post_meta( $wps_subscription_id, '_payment_method', true );
         if ( $this->id === $wps_payment_method ) {
             if ( 'Cancel' === $status ) {
@@ -171,7 +171,7 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
     /**
      * Admin page.
      */
-    public function admin_options() {
+    public function admin_options(): void {
         include __DIR__ . '/admin/views/html-admin-page.php';
     }
 
@@ -187,7 +187,7 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
     /**
      * Settings fields.
      */
-    public function init_form_fields() {
+    public function init_form_fields(): void {
         $this->form_fields = array(
             'enabled' => array(
                 'title' => __('Enable/Disable', 'woocommerce-iopay'),
@@ -265,7 +265,7 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
      *
      * @since 1.1.0
      */
-    public function checkout_scripts() {
+    public function checkout_scripts(): void {
         if (is_checkout() || is_add_payment_method_page() || is_order_received_page()) {
             wp_enqueue_script('iopay-pix', plugins_url('assets/js/pix.js', plugin_dir_path(__FILE__)), array('jquery'), WC_Iopay::VERSION, true);
         }
@@ -276,7 +276,7 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
      *
      * @since 1.1.1
      */
-    public function checkout_styles() {
+    public function checkout_styles(): void {
         if (is_checkout() || is_add_payment_method_page() || is_order_received_page() || is_order_received_page()) {
             wp_enqueue_style('iopay-pix-style', plugins_url('assets/css/pix.css', plugin_dir_path(__FILE__)), array(), WC_Iopay::VERSION);
         }
@@ -285,7 +285,7 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
     /**
      * Payment fields.
      */
-    public function payment_fields() {
+    public function payment_fields(): void {
         $description = $this->get_description();
         if ( ! empty($description)) {
             echo wp_kses_post(wpautop(wptexturize($description)));
@@ -314,7 +314,7 @@ class WC_Iopay_Pix_Gateway extends Wc_Iopay_Paymethod_Gateway {
      *
      * @param int $order_id order ID
      */
-    public function thankyou_page($order_id) {
+    public function thankyou_page($order_id): void {
         $order = wc_get_order($order_id);
         $data = get_post_meta($order_id, 'data_payment_iopay', true);
         $data_success = get_post_meta($order_id, 'data_success_iopay', true);

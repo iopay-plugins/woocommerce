@@ -10,7 +10,7 @@ if ( ! defined('ABSPATH')) {
 /**
  * WC_Iopay_API class.
  */
-class WC_Iopay_API {
+final class WC_Iopay_API {
     /**
      * API URL.
      */
@@ -1386,7 +1386,7 @@ class WC_Iopay_API {
      * @param WC_Order $order  order data
      * @param string   $status transaction status
      */
-    public function process_order_status($order, $status) {
+    public function process_order_status($order, $status): void {
         if ('yes' === $this->gateway->debug) {
             $this->gateway->log->add($this->gateway->id, 'Payment status for order ' . $order->get_order_number() . ' is now: ' . $status);
         }
@@ -1401,7 +1401,7 @@ class WC_Iopay_API {
 
             case 'pre_authorized':
                 $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
-                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
+                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . (int) $transaction_id . '">https://minhaconta.iopay.com.br/login/#/transactions/' . (int) $transaction_id . '</a>';
 
                 // translators: %s transaction details url
                 $order->update_status('on-hold', __('Iopay: You should manually analyze this transaction to continue payment flow, access %s to do it!', 'woocommerce-iopay'), $transaction_url);
@@ -1422,7 +1422,7 @@ class WC_Iopay_API {
                 $order->update_status('failed', __('Iopay: The transaction was rejected by the card company or by fraud.', 'woocommerce-iopay'));
 
                 $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
-                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
+                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . (int) $transaction_id . '">https://minhaconta.iopay.com.br/login/#/transactions/' . (int) $transaction_id . '</a>';
 
                 $this->send_email(
                     sprintf(esc_html__('The transaction for order %s was rejected by the card company or by fraud', 'woocommerce-iopay'), $order->get_order_number()),
@@ -1436,7 +1436,7 @@ class WC_Iopay_API {
                 $order->update_status('refunded', __('Iopay: The transaction was refunded/canceled.', 'woocommerce-iopay'));
 
                 $transaction_id = get_post_meta($order->id, '_wc_iopay_transaction_id', true);
-                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '">https://minhaconta.iopay.com.br/login/#/transactions/' . intval($transaction_id) . '</a>';
+                $transaction_url = '<a href="https://minhaconta.iopay.com.br/login/#/transactions/' . (int) $transaction_id . '">https://minhaconta.iopay.com.br/login/#/transactions/' . (int) $transaction_id . '</a>';
 
                 $this->send_email(
                     sprintf(esc_html__('The transaction for order %s refunded', 'woocommerce-iopay'), $order->get_order_number()),
@@ -1451,7 +1451,7 @@ class WC_Iopay_API {
         }
     }
 
-    public function iopay_scripts() {
+    public function iopay_scripts(): void {
         if (is_checkout() || is_add_payment_method_page() || is_order_received_page()) {
             wp_enqueue_script('iopay-main', plugins_url('assets/js/main.js', plugin_dir_path(__FILE__)), array('jquery'), WC_Iopay::VERSION, true);
         }
@@ -1528,7 +1528,7 @@ class WC_Iopay_API {
      * @param int   $id   order ID
      * @param array $data order data
      */
-    protected function save_order_meta_fields($id, $data) {
+    protected function save_order_meta_fields($id, $data): void {
         $data['payment_method'] = (array) $data['payment_method'];
         $data['payment_method']['metadata'] = (array) $data['payment_method']['metadata'];
 
@@ -1546,11 +1546,11 @@ class WC_Iopay_API {
             __('Banking Ticket URL', 'woocommerce-iopay') => sanitize_text_field($data['payment_method']['url'] ?? ''),
             __('Credit Card', 'woocommerce-iopay') => $this->get_card_brand_name(sanitize_text_field($data['card_brand'] ?? '')),
             __('Installments', 'woocommerce-iopay') => sanitize_text_field($data['installments']),
-            __('Total paid', 'woocommerce-iopay') => number_format(intval($data['amount']) / 100, wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()),
+            __('Total paid', 'woocommerce-iopay') => number_format((int) ($data['amount']) / 100, wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()),
             __('Anti Fraud Score', 'woocommerce-iopay') => sanitize_text_field($data['antifraud_score']),
             '_wc_iopay_transaction_data' => $payment_data,
-            '_wc_iopay_transaction_id' => intval($data['id']),
-            '_transaction_id' => intval($data['id']),
+            '_wc_iopay_transaction_id' => (int) ($data['id']),
+            '_transaction_id' => (int) ($data['id']),
         );
 
         $order = wc_get_order($id);
@@ -1576,7 +1576,7 @@ class WC_Iopay_API {
      * @param string $title   email title
      * @param string $message email message
      */
-    protected function send_email($subject, $title, $message) {
+    protected function send_email($subject, $title, $message): void {
         $mailer = WC()->mailer();
         $mailer->send(get_option('admin_email'), $subject, $mailer->wrap_message($title, $message));
     }
@@ -1659,7 +1659,6 @@ class WC_Iopay_API {
 
                 default:
                     throw new Exception('Method not allowed', 404);
-
                     break;
             }
 

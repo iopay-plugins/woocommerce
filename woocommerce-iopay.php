@@ -19,7 +19,7 @@ if ( ! class_exists('WC_Iopay')) {
     /**
      * WooCommerce WC_Iopay main class.
      */
-    class WC_Iopay {
+    final class WC_Iopay {
         /**
          * Plugin version.
          *
@@ -83,7 +83,7 @@ if ( ! class_exists('WC_Iopay')) {
         /**
          * Check payment ajax request.
          */
-        public function check_pix_payment() {
+        public function check_pix_payment(): void {
             $order_id = sanitize_text_field($_GET['key']); // wc_get_order_id_by_order_key($_GET['key']);
             $order = wc_get_order($order_id);
 
@@ -133,7 +133,7 @@ if ( ! class_exists('WC_Iopay')) {
         /**
          * Load the plugin text domain for translation.
          */
-        public function load_plugin_textdomain() {
+        public function load_plugin_textdomain(): void {
             load_plugin_textdomain('woocommerce-iopay', false, dirname(plugin_basename(__FILE__)) . '/languages/');
         }
 
@@ -187,14 +187,14 @@ if ( ! class_exists('WC_Iopay')) {
         /**
          * WooCommerce fallback notice.
          */
-        public function woocommerce_missing_notice() {
+        public function woocommerce_missing_notice(): void {
             include __DIR__ . '/includes/admin/views/html-notice-missing-woocommerce.php';
         }
 
         /**
          * Brazilian Market plugin missing notice.
          */
-        public function brazilian_market_missing_notice() {
+        public function brazilian_market_missing_notice(): void {
             if ( is_admin() && get_option('woocommerce_iopay_admin_notice_missing_brazilian_market') === 'yes') {
                 // Do not show the notice if the Brazilian Market plugin is installed.
                 if (class_exists('Extra_Checkout_Fields_For_Brazil')) {
@@ -210,7 +210,7 @@ if ( ! class_exists('WC_Iopay')) {
         /**
          * Iopay documentation notice.
          */
-        public function iopay_documentation_link_notice() {
+        public function iopay_documentation_link_notice(): void {
             if (is_admin() && get_option('woocommerce_iopay_admin_notice_documentation_link') === 'yes') {
                 include __DIR__ . '/includes/admin/views/html-notice-iopay-documentation-link.php';
             }
@@ -232,7 +232,7 @@ if ( ! class_exists('WC_Iopay')) {
         /**
          * Hide a notice if the GET variable is set.
          */
-        public static function hide_notices() {
+        public static function hide_notices(): void {
             if (isset($_GET['woocommerce-iopay-hide-notice'])) {
                 $notice_to_hide = sanitize_text_field(wp_unslash($_GET['woocommerce-iopay-hide-notice']));
                 delete_option('woocommerce_iopay_admin_notice_' . $notice_to_hide);
@@ -244,7 +244,7 @@ if ( ! class_exists('WC_Iopay')) {
          *
          * Fired by `register_activation_hook` when the plugin is activated.
          */
-        public static function activation() {
+        public static function activation(): void {
             if (is_multisite()) {
                 return;
             }
@@ -255,7 +255,7 @@ if ( ! class_exists('WC_Iopay')) {
         /**
          * After activation.
          */
-        public function after_activation() {
+        public function after_activation(): void {
             if (is_admin() && get_option('woocommerce_iopay_activated') === 'yes') {
                 delete_option('woocommerce_iopay_activated');
 
@@ -382,7 +382,7 @@ if ( ! class_exists('WC_Iopay')) {
          * @param string $title   email title
          * @param string $message email message
          */
-        protected function send_email($subject, $title, $message) {
+        protected function send_email($subject, $title, $message): void {
             $mailer = WC()->mailer();
             $mailer->send(get_option('admin_email'), $subject, $mailer->wrap_message($title, $message));
         }
@@ -390,7 +390,7 @@ if ( ! class_exists('WC_Iopay')) {
         /**
          * Includes.
          */
-        private function includes() {
+        private function includes(): void {
             include_once __DIR__ . '/includes/class-wc-iopay-paymethod.php';
 
             include_once __DIR__ . '/includes/class-wc-iopay-api.php';
@@ -409,7 +409,7 @@ if ( ! class_exists('WC_Iopay')) {
          *
          * @since 1.0.0
          */
-        private function upgrade() {
+        private function upgrade(): void {
             if (is_admin()) {
                 if ($old_options = get_option('woocommerce_iopay_settings')) {
                     // Banking ticket options.
