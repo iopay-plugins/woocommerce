@@ -3,11 +3,11 @@ Contributors: iopay, linknacional
 Donate link: https://iopay.com.br/
 Tags: woocommerce, iopay, payment, pix
 Requires at least: 5.7
-Tested up to: 6.2
+Tested up to: 6.3
 Requires PHP: 7.0
-Stable tag: 1.2.0
-License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Stable tag: 1.2.1
+License: GPLv3 or later
+License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 Receive payments by credit card, pix and banking ticket
 
@@ -83,6 +83,12 @@ It is possible to remove the address, company and telephone fields, keeping only
 1. none
 
 == Changelog ==
+
+= v1.2.1 =
+**09/08/2023**
+* Fixed a error with customer not recognized for the transaction;
+* Script optimizations;
+* General code optimizations.
 
 = v1.2.0 =
 **28/06/2023**
