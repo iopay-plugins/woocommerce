@@ -1,5 +1,11 @@
 # IOPAY for WooCommerce
 
+## Atenção - este repositório não oficial foi descontinuado
+
+Este repositório está arquivado para fins de consulta, o mesmo não está mais sendo atualizado.
+
+<hr>
+
 Receba pagamentos por cartão de crédito, pix e boleto bancário.
 
 O [IOPAY](https://iopay.com.br/) é a melhor forma de receber pagamentos online por cartão de crédito, pix e boleto bancário, sendo possível o cliente fazer todo o pagamento sem sair da sua loja WooCommerce.
